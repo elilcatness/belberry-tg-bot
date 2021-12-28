@@ -52,5 +52,6 @@ def finish_registration(update, context):
                        f'https://t.me/{context.bot.username}</i></div>'):
         update.message.reply_text('Произошла ошибка при создании заявки', reply_markup=markup)
     else:
-        update.message.reply_text('Ваша заявка была успешно отправлена. Ожидайте звонка')
+        update.message.reply_text('Ваша заявка была успешно отправлена. Ожидайте звонка',
+                                  reply_markup=markup)
     return help_menu(update, context)
