@@ -15,7 +15,8 @@ def register_name(_, context):
             reply_markup=ReplyKeyboardRemove())
         return help_menu(_, context)
     context.user_data['register'] = {}
-    markup = ReplyKeyboardMarkup([[KeyboardButton('Вернуться назад')]], resize_keyboard=True)
+    markup = ReplyKeyboardMarkup([[KeyboardButton('Вернуться назад')]], resize_keyboard=True,
+                                 one_time_keyboard=True)
     msg = context.bot.send_message(context.user_data['id'], 'Введите своё имя',
                                    reply_markup=markup)
     save_callback(context.user_data['id'], context.user_data['first_name'], 'register_name', msg.message_id)
