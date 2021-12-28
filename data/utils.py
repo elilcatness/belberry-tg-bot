@@ -1,9 +1,12 @@
 import json
 import os
 
+from telegram import ReplyKeyboardRemove
+
 from data.db import db_session
 from data.db.models.callback import Callback
 from data.db.models.config import Config
+from data.help import help_menu
 
 
 def save_callback(user_id: int, first_name: str, callback: str, message_id: int = None,
@@ -56,3 +59,10 @@ def save_config(cfg):
             config.text = json.dumps(cfg)
             session.merge(config)
         session.commit()
+
+
+# Осторожно, костыль!!!!
+def clear_keyboard(_, context):
+    msg = context.bot.send_message(context.user_data['id'], '.', reply_markup=ReplyKeyboardRemove())
+    msg.delete()
+    return help_menu(_, context)

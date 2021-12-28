@@ -11,6 +11,7 @@ from data.db.models.callback import Callback
 from data.help import *
 from data.info import *
 from data.register import *
+from data.utils import clear_keyboard
 
 updater: Updater = None
 
@@ -96,7 +97,7 @@ conv_handler = ConversationHandler(
                         MessageHandler(Filters.text('Вернуться назад'), help_menu)],
             'register_name': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.text,
                                              register_phone),
-                              MessageHandler(Filters.text('Вернуться назад'), help_menu)],
+                              MessageHandler(Filters.text('Вернуться назад'), clear_keyboard)],
             'register_phone': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all,
                                               finish_registration),
                                MessageHandler(Filters.text('Вернуться назад'), register_name)]},
