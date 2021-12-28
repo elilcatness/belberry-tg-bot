@@ -11,7 +11,6 @@ from data.db.models.callback import Callback
 from data.help import *
 from data.info import *
 from data.register import *
-from data.utils import clear_keyboard
 
 updater: Updater = None
 
@@ -65,6 +64,13 @@ def reset_data(update, context):
             save_config(json.loads(f.read()))
             update.message.reply_text('Настройки были успешно сброшены')
     return start(update, context)
+
+
+# Осторожно, костыль!!!!
+def clear_keyboard(_, context):
+    msg = context.bot.send_message(context.user_data['id'], '.', reply_markup=ReplyKeyboardRemove())
+    msg.delete()
+    return help_menu(_, context)
 
 
 conv_handler = ConversationHandler(

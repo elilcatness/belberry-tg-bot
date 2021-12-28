@@ -59,10 +59,3 @@ def save_config(cfg):
             config.text = json.dumps(cfg)
             session.merge(config)
         session.commit()
-
-
-# Осторожно, костыль!!!!
-def clear_keyboard(_, context):
-    msg = context.bot.send_message(context.user_data['id'], '.', reply_markup=ReplyKeyboardRemove())
-    msg.delete()
-    return help_menu(_, context)
