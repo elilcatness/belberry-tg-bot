@@ -30,7 +30,7 @@ def request_changing_data(_, context):
         disable_web_page_preview=True, parse_mode=ParseMode.HTML)
     save_callback(context.user_data['id'], context.user_data['first_name'],
                   'data', msg.message_id, key_to_change=context.match.string)
-    context.user_data['message_id'] = msg.id
+    context.user_data['message_id'] = msg.message_id
     return 'data'
 
 
