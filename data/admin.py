@@ -1,5 +1,4 @@
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
-from telegram.ext import CallbackContext
 
 from data.utils import delete_last_message, get_config, save_config, save_callback
 

@@ -16,7 +16,7 @@ updater: Updater = None
 
 
 @delete_last_message
-def start(update, context: CallbackContext):
+def start(update, context):
     cfg = get_config()
     buttons = [[InlineKeyboardButton('Информация и помощь', callback_data='info')],
                [InlineKeyboardButton('Сайт клиники', url=cfg.get('URL клиники', 'https://google.com'))],

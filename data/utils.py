@@ -30,6 +30,7 @@ def delete_last_message(func):
                       callback, message_id)
         context.user_data['message_id'] = message_id
         return callback
+
     return wrapper
 
 

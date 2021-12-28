@@ -1,5 +1,4 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
-from telegram.ext import CallbackContext
 
 from data.utils import get_config, delete_last_message
 
@@ -20,8 +19,8 @@ def about(_, context):
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     return context.bot.send_message(
         context.user_data['id'], f'{cfg.get("Описание клиники", "На данный момент описания нет")}\n\n'
-                                      f'<b>Наш телефон:</b> {cfg.get("Номер телефона клиники", "Не указан")}\n'
-                                      f'<b>E-Mail</b>: {cfg.get("email", "Не указан")}',
+                                 f'<b>Наш телефон:</b> {cfg.get("Номер телефона клиники", "Не указан")}\n'
+                                 f'<b>E-Mail</b>: {cfg.get("email", "Не указан")}',
         reply_markup=markup, parse_mode=ParseMode.HTML), 'about_menu'
 
 
