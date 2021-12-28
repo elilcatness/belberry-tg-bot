@@ -20,6 +20,6 @@ def global_init(url):
     SqlAlchemyBase.metadata.create_all(engine)
 
 
-def create_session() -> Session:
+def create_session():
     global __factory
     return __factory()
