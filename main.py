@@ -61,7 +61,11 @@ def reset_data(update, context):
         context.user_data.pop('message').delete()
     if update.message.text == 'Да':
         with open(os.path.join('data', 'config.json'), encoding='utf-8') as f:
-            save_config(json.loads(f.read()))
+            cfg = get_config()
+            admins = cfg['admins']
+            data = json.loads(f.read())
+            data['admins'] = admins
+            save_config(data)
             update.message.reply_text('Настройки были успешно сброшены')
     return start(update, context)
 
