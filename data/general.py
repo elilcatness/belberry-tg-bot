@@ -7,7 +7,7 @@ from data.utils import delete_last_message, get_config
 @delete_last_message
 def start(update, context):
     cfg = get_config()
-    buttons = [[InlineKeyboardButton('Информация и помощь', callback_data='info')],
+    buttons = [[InlineKeyboardButton('Нужна помощь?', callback_data='info')],
                [InlineKeyboardButton('Сайт клиники', url=cfg.get('URL клиники', 'https://google.com'))],
                [InlineKeyboardButton('В другой раз...', callback_data='another_time')]]
     phone = cfg.get('Контактный номер телефона', 'Не указан')
@@ -34,8 +34,8 @@ def start(update, context):
 @delete_last_message
 def ask_for_info_or_help(_, context):
     markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton('Помощь', callback_data='help')],
-         [InlineKeyboardButton('Информация', callback_data='info')],
+        [[InlineKeyboardButton('Да', callback_data='help')],
+         [InlineKeyboardButton('Нет', callback_data='info')],
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     return context.bot.send_message(context.user_data['id'], 'Вам нужна помощь или справочная информация?',
                                     reply_markup=markup), 'help_or_info'
