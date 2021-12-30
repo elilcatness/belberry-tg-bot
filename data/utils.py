@@ -2,36 +2,38 @@ import json
 import os
 
 from data.db import db_session
-from data.db.models.callback import Callback
+from data.db.models.state import State
 from data.db.models.config import Config
-
-
-def save_callback(user_id: int, first_name: str, callback: str, message_id: int = None,
-                  register_name: str = None, key_to_change: str = None):
-    with db_session.create_session() as session:
-        cb = session.query(Callback).filter(Callback.user_id == user_id).first()
-        if cb:
-            session.delete(cb)
-            session.commit()
-        session.add(Callback(user_id=user_id, first_name=first_name, callback=callback,
-                             message_id=message_id, register_name=register_name,
-                             key_to_change=key_to_change))
-        session.commit()
 
 
 def delete_last_message(func):
     def wrapper(update, context):
         if context.user_data.get('message_id'):
-            message_id = context.user_data.pop('message_id')
-            context.bot.deleteMessage(context.user_data['id'], message_id)
-        msg, callback = func(update, context)
-        message_id = msg.message_id
-        save_callback(context.user_data['id'], context.user_data['first_name'],
-                      callback, message_id)
-        context.user_data['message_id'] = message_id
+            context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
+        output = func(update, context)
+        if isinstance(output, tuple):
+            msg, callback = output
+            context.user_data['message_id'] = msg.message_id
+            save_state(context.user_data['id'], callback, context.user_data)
+        else:
+            callback = output
         return callback
 
     return wrapper
+
+
+def save_state(user_id: int, callback: str, data: dict):
+    with db_session.create_session() as session:
+        state = session.query(State).get(user_id)
+        str_data = json.dumps(data)
+        if state:
+            state.user_id = user_id
+            state.callback = callback
+            state.data = str_data
+        else:
+            state = State(user_id=user_id, callback=callback, data=str_data)
+        session.add(state)
+        session.commit()
 
 
 def get_config():

@@ -21,11 +21,19 @@ def help_menu(_, context):
 def show_contacts(_, context):
     cfg = get_config()
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+    phone_key = 'Контактный номер телефона'
+    phone_data = cfg.get('Контактный номер телефона', 'Не указан')
+    if len(phone_data.split(';')) > 1:
+        phone_data = '\n' + '\n'.join([f'• {ph}' for ph in phone_data.split(';')])
+        phone_key = 'Контактные номера телефонов'
+    email_data = cfg.get('email', 'Не указан')
+    if len(email_data.split(';')) > 1:
+        email_data = '\n' + '\n'.join([f'• {mail}' for mail in email_data.split(';')])
     return context.bot.send_message(
         context.user_data['id'],
         'Я так рад, что Вы уже были у нас!\n\n'
-        f'<b>Контактный номер телефона:</b> {cfg.get("Контактный номер телефона", "Не указан")}\n'
-        f'<b>E-mail:</b> {cfg.get("email", "Не указан")}',
+        f'<b>{phone_key}:</b> {phone_data}\n'
+        f'<b>E-mail:</b> {email_data}',
         reply_markup=markup, parse_mode=ParseMode.HTML), 'contacts'
 
 
@@ -41,16 +49,18 @@ def ask_phone(_, context):
         reply_markup=markup), 'consult'
 
 
+@delete_last_message
 def consult(update, context):
     cfg = get_config()
     phone_number = (update.message.contact.phone_number
                     if getattr(update.message, 'contact')
                     and getattr(update.message.contact, 'phone_number') else update.message.text)
     markup = ReplyKeyboardRemove()
-    if context.user_data.get('message_id'):
-        context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
-    if not cfg.get('email') or not send_mail(
-            cfg['email'], 'Заявка на консультацию',
+    email = cfg.get('email')
+    if email and len(email.split(';')) > 1:
+        email = email.split(';')[0]
+    if not email or not send_mail(
+            email, 'Заявка на консультацию',
             f'Заявка на консультацию поступила с указанием следующего номера: {phone_number}\n\n'
             f'<div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
             f'https://t.me/{context.bot.username}</i></div>'):
