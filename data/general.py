@@ -37,7 +37,7 @@ def ask_for_info_or_help(_, context):
         [[InlineKeyboardButton('Да', callback_data='help')],
          [InlineKeyboardButton('Нет', callback_data='info')],
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
-    return context.bot.send_message(context.user_data['id'], 'Вам нужна помощь или справочная информация?',
+    return context.bot.send_message(context.user_data['id'], 'Нужна ли Вам помощь?',
                                     reply_markup=markup), 'help_or_info'
 
 
