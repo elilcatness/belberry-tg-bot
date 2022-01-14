@@ -2,10 +2,10 @@ from telegram import (ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove,
                       InlineKeyboardMarkup, InlineKeyboardButton, ParseMode)
 
 from data.mail_sender import send_mail
-from data.utils import handle_last_message, get_config
+from data.utils import delete_last_message, get_config
 
 
-@handle_last_message
+@delete_last_message
 def help_menu(_, context):
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton('Оставить отзыв', url=get_config().get('URL для отзыва', 'https://google.com'))],
@@ -16,15 +16,15 @@ def help_menu(_, context):
     return (context.user_data['id'], 'Выберите опцию'), {'reply_markup': markup}, 'help_menu'
 
 
-@handle_last_message
+@delete_last_message
 def show_contacts(_, context):
     cfg = get_config()
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
-    phone_key = 'Контактный номер телефона'
-    phone_data = cfg.get('Контактный номер телефона', 'Не указан')
+    phone_key = 'Номер телефона'
+    phone_data = cfg.get('Номер телефона', 'Не указан')
     if len(phone_data.split(';')) > 1:
         phone_data = '\n' + '\n'.join([f'• {ph}' for ph in phone_data.split(';')])
-        phone_key = 'Контактные номера телефонов'
+        phone_key = 'Номера телефонов'
     email_data = cfg.get('email', 'Не указан')
     if len(email_data.split(';')) > 1:
         email_data = '\n' + '\n'.join([f'• {mail}' for mail in email_data.split(';')])
@@ -34,7 +34,7 @@ def show_contacts(_, context):
             {'reply_markup': markup, 'parse_mode': ParseMode.HTML}, 'contacts')
 
 
-@handle_last_message
+@delete_last_message
 def ask_phone(_, context):
     markup = ReplyKeyboardMarkup([[KeyboardButton('Взять из Telegram', request_contact=True)],
                                   [KeyboardButton('Вернуться назад')]],
@@ -44,7 +44,7 @@ def ask_phone(_, context):
             {'reply_markup': markup}, 'consult')
 
 
-@handle_last_message
+@delete_last_message
 def consult(update, context):
     cfg = get_config()
     phone_number = (update.message.contact.phone_number

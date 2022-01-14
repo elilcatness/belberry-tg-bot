@@ -4,10 +4,10 @@ import os
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 
 from data.general import start
-from data.utils import handle_last_message, get_config, save_config
+from data.utils import delete_last_message, get_config, save_config
 
 
-@handle_last_message
+@delete_last_message
 def show_data(_, context):
     cfg = get_config()
     markup = InlineKeyboardMarkup(
@@ -16,7 +16,7 @@ def show_data(_, context):
     return (context.user_data['id'], 'Выберите переменную'), {'reply_markup': markup}, 'data_requesting'
 
 
-@handle_last_message
+@delete_last_message
 def request_changing_data(_, context):
     context.user_data['key_to_change'] = context.match.string
     current_value = get_config()[context.match.string]
@@ -31,7 +31,7 @@ def request_changing_data(_, context):
             'data')
 
 
-@handle_last_message
+@delete_last_message
 def change_data(update, context):
     if context.user_data.get('message_id'):
         context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
@@ -50,7 +50,7 @@ def change_data(update, context):
     return show_data(update, context)
 
 
-@handle_last_message
+@delete_last_message
 def ask_resetting_data(_, context):
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Да', callback_data='change_yes')],
                                   [InlineKeyboardButton('Нет', callback_data='change_no')]])
@@ -59,7 +59,7 @@ def ask_resetting_data(_, context):
             {'reply_markup': markup}), 'data_resetting'
 
 
-@handle_last_message
+@delete_last_message
 def reset_data(update, context):
     if update.message.text == 'Да':
         with open(os.path.join('data', 'config.json'), encoding='utf-8') as f:

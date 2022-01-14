@@ -2,10 +2,10 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
 from data.help import help_menu
 from data.mail_sender import send_mail
-from data.utils import get_config, handle_last_message
+from data.utils import get_config, delete_last_message
 
 
-@handle_last_message
+@delete_last_message
 def register_name(_, context):
     if not get_config().get('email'):
         context.bot.send_message(
@@ -19,7 +19,7 @@ def register_name(_, context):
     return (context.user_data['id'], 'Введите своё имя'), {'reply_markup': markup}, 'register_name'
 
 
-@handle_last_message
+@delete_last_message
 def register_phone(update, context):
     context.user_data['register']['Имя'] = update.message.text
     markup = ReplyKeyboardMarkup([[KeyboardButton('Взять из Telegram', request_contact=True)],
@@ -29,7 +29,7 @@ def register_phone(update, context):
             {'reply_markup': markup}, 'register_phone')
 
 
-@handle_last_message
+@delete_last_message
 def finish_registration(update, context):
     context.user_data['register']['Номер телефона'] = (
         update.message.contact.phone_number

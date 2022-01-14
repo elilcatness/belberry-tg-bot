@@ -3,8 +3,7 @@
     "738699147", "142616557"
   ],
   "Название клиники": "Клиника для животных",
-  "Контактный номер телефона": "+74952512312",
-  "Номер телефона клиники": "+74952512312",
+  "Номер телефона": "+74952512312",
   "Адрес клиники": "Москва, Варшавское шоссе, д.118, к.1. этаж 13, офис 22",
   "Описание клиники": "Уютное место для различных животных!",
   "URL клиники": "https://belberry.net",
@@ -13,5 +12,8 @@
   "smtp_host": "smtp.mail.ru",
   "smtp_port": "465",
   "smtp_from": "belberry_notifications@mail.ru",
-  "smtp_password": "7H6ws8p3V6nz1wEVuDxs"
+  "smtp_password": "7H6ws8p3V6nz1wEVuDxs",
+  "cloudinary.cloud_name": "belberry",
+  "cloudinary.api_key": "526945777686722",
+  "cloudinary.api_secret": "27WCCHvLrbMh_SI4vXbXLFhaTrk"
 }

@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 
-from data.utils import get_config, handle_last_message
+from data.utils import get_config, delete_last_message
 
 
-@handle_last_message
+@delete_last_message
 def info_menu(_, context):
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton('О нас', callback_data='about')],
@@ -14,7 +14,7 @@ def info_menu(_, context):
     return (context.user_data['id'], 'Выберите тип информации'), {'reply_markup': markup}, 'info_menu'
 
 
-@handle_last_message
+@delete_last_message
 def about(_, context):
     cfg = get_config()
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
@@ -32,7 +32,7 @@ def about(_, context):
             {'reply_markup': markup, 'parse_mode': ParseMode.HTML}, 'about_menu')
 
 
-@handle_last_message
+@delete_last_message
 def show_address(_, context):
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     address_key = 'Наш адрес'

@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import NullPool
 
 SqlAlchemyBase = declarative_base()
@@ -20,6 +20,6 @@ def global_init(url):
     SqlAlchemyBase.metadata.create_all(engine)
 
 
-def create_session():
+def create_session() -> Session:
     global __factory
     return __factory()

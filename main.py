@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
+import cloudinary
+from telegram import Update
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
-                          CallbackQueryHandler, MessageHandler, Filters)
+                          CallbackQueryHandler, MessageHandler, Filters, CallbackContext)
 
+from data.admin.add import add_menu, SpecialistAddition
 from data.admin.panel import *
 from data.db import db_session
 from data.db.models.state import State
@@ -12,6 +15,9 @@ from data.register import *
 
 
 # Осторожно, костыль!!!!
+from data.utils import upload_img, delete_img
+
+
 def clear_keyboard(_, context):
     msg = context.bot.send_message(context.user_data['id'], '.', reply_markup=ReplyKeyboardRemove())
     msg.delete()
@@ -34,13 +40,30 @@ def main():
         states={'menu': [CallbackQueryHandler(ask_for_info_or_help, pattern='info'),
                          CallbackQueryHandler(say_goodbye, pattern='another_time'),
                          CallbackQueryHandler(show_data, pattern='data'),
-                         CallbackQueryHandler(ask_resetting_data, pattern='ask')],
+                         CallbackQueryHandler(ask_resetting_data, pattern='ask'),
+                         CallbackQueryHandler(add_menu, pattern='add_menu')],
                 'data_resetting': [CallbackQueryHandler(reset_data, pattern='change_yes'),
                                    CallbackQueryHandler(start, pattern='change_no')],
                 'data_requesting': [CallbackQueryHandler(start, pattern='menu'),
                                     CallbackQueryHandler(request_changing_data, pattern='')],
                 'data': [CallbackQueryHandler(show_data, pattern='data'),
                          MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, change_data)],
+                'add_menu': [CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='add_specialists'),
+                             CallbackQueryHandler(start, pattern='back')],
+                'SpecialistAddition.ask_full_name': [
+                    MessageHandler(Filters.text, SpecialistAddition.ask_speciality),
+                    CallbackQueryHandler(add_menu, pattern='back')],
+                'SpecialistAddition.ask_speciality': [
+                    MessageHandler(Filters.text, SpecialistAddition.ask_description),
+                    CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='back')],
+                'SpecialistAddition.ask_description': [
+                    MessageHandler(Filters.text, SpecialistAddition.ask_photo),
+                    CallbackQueryHandler(SpecialistAddition.ask_photo, pattern='skip_description'),
+                    CallbackQueryHandler(SpecialistAddition.ask_speciality, pattern='back')],
+                'SpecialistAddition.ask_photo': [
+                    MessageHandler(Filters.photo, SpecialistAddition.finish),
+                    CallbackQueryHandler(SpecialistAddition.finish, pattern='skip_photo'),
+                    CallbackQueryHandler(SpecialistAddition.ask_description, pattern='back')],
                 'help_or_info': [CallbackQueryHandler(help_menu, pattern='help'),
                                  CallbackQueryHandler(info_menu, pattern='info'),
                                  CallbackQueryHandler(start, pattern='back')],
@@ -72,4 +95,9 @@ def main():
 if __name__ == '__main__':
     load_dotenv()
     db_session.global_init(os.getenv('DATABASE_URL'))
+    cfg = get_config()
+    cloudinary.config(
+        cloud_name=cfg['cloudinary.cloud_name'],
+        api_key=cfg['cloudinary.api_key'],
+        api_secret=cfg['cloudinary.api_secret'])
     main()

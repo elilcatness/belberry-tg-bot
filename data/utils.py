@@ -1,40 +1,30 @@
 import json
 import os
 
-from telegram.error import BadRequest
+from cloudinary import uploader
 
-from data.constants import IRREGULAR
+from telegram.error import BadRequest
+from telegram.ext import CallbackContext
+
 from data.db import db_session
 from data.db.models.state import State
 from data.db.models.config import Config
 
 
-def handle_last_message(func):
-    def wrapper(update, context):
-        state = get_current_state(context.user_data['id'])
-        if state and state.callback in IRREGULAR:
-            context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
+def delete_last_message(func):
+    def wrapper(update, context: CallbackContext):
+        if context.user_data.get('message_id'):
+            try:
+                context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
+            except BadRequest:
+                pass
+        while context.user_data.get('messages_to_delete'):
+            context.bot.deleteMessage(context.user_data['id'],
+                                      context.user_data['messages_to_delete'].pop(0))
         output = func(update, context)
         if isinstance(output, tuple):
-            if len(output) == 3:
-                args, kwargs, callback = output
-            else:
-                args, callback = output
-                kwargs = dict()
-            chat_id, text = args
-            send_new = True
-            if context.user_data.get('message_id'):
-                send_new = False
-                try:
-                    context.bot.editMessageText(text, chat_id, context.user_data['message_id'], **kwargs)
-                except BadRequest:
-                    send_new = True
-                    try:
-                        context.bot.deleteMessage(chat_id, context.user_data.pop('message_id'))
-                    except BadRequest:
-                        pass
-            if send_new:
-                context.user_data['message_id'] = context.bot.sendMessage(chat_id, text, **kwargs).message_id
+            msg, callback = output
+            context.user_data['message_id'] = msg.message_id
             save_state(context.user_data['id'], callback, context.user_data)
         else:
             callback = output
@@ -84,3 +74,13 @@ def save_config(cfg):
             config.text = json.dumps(cfg)
             session.merge(config)
         session.commit()
+
+
+# in front-end: stream = update.message.photo[-1].get_file().download_as_bytearray()
+
+def upload_img(img_stream: bytes):
+    return uploader.upload_image(img_stream).url
+
+
+def delete_img(url: str):
+    uploader.destroy(url.split('/')[-1].split('.')[0])
