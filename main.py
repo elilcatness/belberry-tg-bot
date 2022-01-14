@@ -4,7 +4,7 @@ from telegram import Update
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters, CallbackContext)
 
-from data.admin.add import add_menu, SpecialistAddition
+from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
 from data.admin.panel import *
 from data.db import db_session
 from data.db.models.state import State
@@ -49,6 +49,7 @@ def main():
                 'data': [CallbackQueryHandler(show_data, pattern='data'),
                          MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, change_data)],
                 'add_menu': [CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='add_specialists'),
+                             CallbackQueryHandler(ServiceAddition.ask_name, pattern='add_services'),
                              CallbackQueryHandler(start, pattern='back')],
                 'SpecialistAddition.ask_full_name': [
                     MessageHandler(Filters.text, SpecialistAddition.ask_speciality),
@@ -61,9 +62,20 @@ def main():
                     CallbackQueryHandler(SpecialistAddition.ask_photo, pattern='skip_description'),
                     CallbackQueryHandler(SpecialistAddition.ask_speciality, pattern='back')],
                 'SpecialistAddition.ask_photo': [
-                    MessageHandler(Filters.photo, SpecialistAddition.finish),
+                    MessageHandler(Filters.photo | Filters.document, SpecialistAddition.finish),
                     CallbackQueryHandler(SpecialistAddition.finish, pattern='skip_photo'),
                     CallbackQueryHandler(SpecialistAddition.ask_description, pattern='back')],
+                'ServiceAddition.ask_name': [
+                    MessageHandler(Filters.text, ServiceAddition.ask_description),
+                    CallbackQueryHandler(add_menu, pattern='back')],
+                'ServiceAddition.ask_description': [
+                    MessageHandler(Filters.text, ServiceAddition.ask_photo),
+                    CallbackQueryHandler(ServiceAddition.ask_photo, pattern='skip_description'),
+                    CallbackQueryHandler(ServiceAddition.ask_name, pattern='back')],
+                'ServiceAddition.ask_photo': [
+                    MessageHandler(Filters.photo | Filters.document, ServiceAddition.finish),
+                    CallbackQueryHandler(ServiceAddition.finish, pattern='skip_photo'),
+                    CallbackQueryHandler(ServiceAddition.ask_description, pattern='back')],
                 'help_or_info': [CallbackQueryHandler(help_menu, pattern='help'),
                                  CallbackQueryHandler(info_menu, pattern='info'),
                                  CallbackQueryHandler(start, pattern='back')],

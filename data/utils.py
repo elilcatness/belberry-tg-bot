@@ -2,13 +2,12 @@ import json
 import os
 
 from cloudinary import uploader
-
 from telegram.error import BadRequest
 from telegram.ext import CallbackContext
 
 from data.db import db_session
-from data.db.models.state import State
 from data.db.models.config import Config
+from data.db.models.state import State
 
 
 def delete_last_message(func):
@@ -76,11 +75,37 @@ def save_config(cfg):
         session.commit()
 
 
-# in front-end: stream = update.message.photo[-1].get_file().download_as_bytearray()
-
 def upload_img(img_stream: bytes):
     return uploader.upload_image(img_stream).url
 
 
 def delete_img(url: str):
     uploader.destroy(url.split('/')[-1].split('.')[0])
+
+
+def terminate_jobs(context: CallbackContext, name: str):
+    for job in context.job_queue.get_jobs_by_name(name):
+        job.schedule_removal()
+    if 'process' in name:
+        msg_id = context.user_data.get('process.msg_id')
+        if msg_id:
+            try:
+                context.bot.delete_message(context.user_data['id'], msg_id)
+            except BadRequest:
+                pass
+        keys = [k for k in context.user_data.keys() if k.startswith('process')]
+        for key in keys:
+            context.user_data.pop(key)
+
+
+def process_view(context: CallbackContext):
+    user_id = context.job.context.user_data['id']
+    msg_id = context.job.context.user_data.get('process.msg_id')
+    msg_text = context.job.context.user_data['process.msg_text']
+    count = context.job.context.user_data.get('process.count', 0)
+    if not msg_id:
+        context.job.context.user_data['process.msg_id'] = context.bot.send_message(
+            user_id, f'{msg_text}{"." * count}').message_id
+    else:
+        context.bot.edit_message_text(f'{msg_text}{"." * count}', user_id, msg_id)
+    context.job.context.user_data['process.count'] = (count + 1) % 4
