@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
 
-from data.admin import *
+from data.admin.panel import *
 from data.db import db_session
 from data.db.models.state import State
 from data.general import ask_for_info_or_help, say_goodbye
