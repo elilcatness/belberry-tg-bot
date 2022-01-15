@@ -8,7 +8,7 @@ from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
 from data.admin.panel import *
 from data.db import db_session
 from data.db.models.state import State
-from data.general import ask_for_info_or_help, say_goodbye
+from data.general import ask_for_help_menu, say_goodbye
 from data.help import *
 from data.info import *
 from data.register import *
@@ -37,7 +37,7 @@ def main():
         allow_reentry=True,
         per_message=False,
         entry_points=[CommandHandler('start', start)],
-        states={'menu': [CallbackQueryHandler(ask_for_info_or_help, pattern='info'),
+        states={'menu': [CallbackQueryHandler(ask_for_help_menu, pattern='help'),
                          CallbackQueryHandler(say_goodbye, pattern='another_time'),
                          CallbackQueryHandler(show_data, pattern='data'),
                          CallbackQueryHandler(ask_resetting_data, pattern='ask'),
@@ -76,18 +76,18 @@ def main():
                     MessageHandler(Filters.photo | Filters.document, ServiceAddition.finish),
                     CallbackQueryHandler(ServiceAddition.finish, pattern='skip_photo'),
                     CallbackQueryHandler(ServiceAddition.ask_description, pattern='back')],
-                'help_or_info': [CallbackQueryHandler(help_menu, pattern='help'),
-                                 CallbackQueryHandler(info_menu, pattern='info'),
+                'ask_for_help': [CallbackQueryHandler(help_menu, pattern='yes'),
+                                 CallbackQueryHandler(info_menu, pattern='no'),
                                  CallbackQueryHandler(start, pattern='back')],
                 'info_menu': [CallbackQueryHandler(about, pattern='about'),
                               CallbackQueryHandler(show_address, pattern='address'),
-                              CallbackQueryHandler(ask_for_info_or_help, pattern='back')],
+                              CallbackQueryHandler(ask_for_help_menu, pattern='back')],
                 'about_menu': [CallbackQueryHandler(info_menu, pattern='back')],
                 'address_menu': [CallbackQueryHandler(info_menu, pattern='back')],
                 'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
                               CallbackQueryHandler(ask_phone, pattern='ask_phone'),
                               CallbackQueryHandler(show_contacts, pattern='contacts'),
-                              CallbackQueryHandler(ask_for_info_or_help, pattern='back')],
+                              CallbackQueryHandler(ask_for_help_menu, pattern='back')],
                 'contacts': [CallbackQueryHandler(help_menu, pattern='back')],
                 'consult': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, consult),
                             MessageHandler(Filters.text('Вернуться назад'), help_menu)],
