@@ -7,23 +7,23 @@ from data.utils import get_config
 
 def send_mail(email, subject, text):
     cfg = get_config()
-    try:
-        addr_from = cfg['smtp_from']['val']
-        password = cfg['smtp_password']['val']
+    # try:
+    addr_from = cfg['smtp_from']['val']
+    password = cfg['smtp_password']['val']
 
-        msg = MIMEMultipart()
-        msg['From'] = addr_from
-        msg['To'] = email
-        msg['Subject'] = subject
+    msg = MIMEMultipart()
+    msg['From'] = addr_from
+    msg['To'] = email
+    msg['Subject'] = subject
 
-        body = text
-        msg.attach(MIMEText(body, 'html'))
+    body = text
+    msg.attach(MIMEText(body, 'html'))
 
-        server = SMTP_SSL(cfg['smtp_host']['val'], cfg['smtp_port']['val'])
-        server.login(addr_from, password)
+    server = SMTP_SSL(cfg['smtp_host']['val'], cfg['smtp_port']['val'])
+    server.login(addr_from, password)
 
-        server.send_message(msg)
-        server.quit()
-        return True
-    except SMTPException:
-        return False
+    server.send_message(msg)
+    server.quit()
+    return True
+    # except SMTPException:
+    #     return False

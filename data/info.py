@@ -7,6 +7,7 @@ from data.utils import get_config, delete_last_message
 @delete_last_message
 def info_menu(_, context: CallbackContext):
     cfg = get_config()
+    context.user_data['last_block'] = 'info'
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton('Услуги', callback_data='services')],
          [InlineKeyboardButton('Специалисты', callback_data='specialists')],
@@ -28,7 +29,7 @@ def about(_, context: CallbackContext):
     context.user_data['last_block'] = 'about'
     cfg = get_config()
     markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton('Проконсультироваться по телефону', callback_data='consult')],
+        [[InlineKeyboardButton('Проконсультироваться по телефону', callback_data='about.consult')],
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     phones = cfg.get('Номер телефона', {}).get('val', 'Не указан')
     if isinstance(phones, list) and len(phones) > 1:

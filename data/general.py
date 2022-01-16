@@ -12,7 +12,7 @@ def start(update, context):
          [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', {}).get('val', 'https://belberry.net/'))],
          [InlineKeyboardButton('Позже', callback_data='later')]]
     phone = cfg.get('Номер телефона', {}).get('val', 'Не указан')
-    if len(phone) > 1:
+    if isinstance(phone, list) and len(phone) > 1:
         phone = phone[0]
     text = (f'Привет, %s! Я ассистент клиники <b>{cfg.get("Название клиники", {}).get("val", "*")}</b>.\n'
             f'Я помогу узнать про нашу клинику подробнее.\n'

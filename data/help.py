@@ -1,7 +1,5 @@
-from telegram import (ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove,
-                      InlineKeyboardMarkup, InlineKeyboardButton, ParseMode)
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 
-from data.mail_sender import send_mail
 from data.utils import delete_last_message, get_config
 
 
