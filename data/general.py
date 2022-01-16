@@ -31,7 +31,8 @@ def start(update, context):
         buttons.extend([[InlineKeyboardButton('Изменить данные (admin)', callback_data='data')],
                         [InlineKeyboardButton('Сбросить настройки (admin)', callback_data='ask')],
                         [InlineKeyboardButton('Добавить сущность (admin)', callback_data='add_menu')],
-                        [InlineKeyboardButton('Редактировать сущность (admin)', callback_data='edit_menu')]])
+                        [InlineKeyboardButton('Редактировать сущность (admin)', callback_data='edit_menu')],
+                        [InlineKeyboardButton('Удалить сущность (admin)', callback_data='delete_menu')]])
     if cfg.get("Фото клиники", {}).get('val'):
         return (context.bot.send_photo(context.user_data['id'], cfg["Фото клиники"]['val'],
                                        text % context.user_data['first_name'],

@@ -8,6 +8,7 @@ from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
 
 from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
+from data.admin.delete import SpecialistDelete, ServiceDelete, delete_menu
 from data.admin.edit import SpecialistEdit, edit_menu, ServiceEdit
 from data.admin.panel import show_data, reset_data, ask_resetting_data, request_changing_data, change_data
 from data.consult import Consult
@@ -45,7 +46,8 @@ def main():
                          CallbackQueryHandler(show_data, pattern='data'),
                          CallbackQueryHandler(ask_resetting_data, pattern='ask'),
                          CallbackQueryHandler(add_menu, pattern='add_menu'),
-                         CallbackQueryHandler(edit_menu, pattern='edit_menu')],
+                         CallbackQueryHandler(edit_menu, pattern='edit_menu'),
+                         CallbackQueryHandler(delete_menu, pattern='delete_menu')],
                 'admin.data_resetting': [CallbackQueryHandler(reset_data, pattern='change_yes'),
                                          CallbackQueryHandler(start, pattern='change_no')],
                 'admin.data_requesting': [CallbackQueryHandler(start, pattern='menu'),
@@ -151,6 +153,29 @@ def main():
                     MessageHandler(Filters.text | Filters.photo, SpecialistEdit.set_new_value),
                     CallbackQueryHandler(SpecialistEdit.edit_menu, pattern='back')
                 ],
+                'delete_menu': [CallbackQueryHandler(SpecialistDelete.show_all, pattern='delete_specialists'),
+                                CallbackQueryHandler(ServiceDelete.show_all, pattern='delete_services'),
+                                CallbackQueryHandler(start, pattern='back')],
+                'delete.specialists.show_all': [
+                    CallbackQueryHandler(SpecialistDelete.confirm, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
+                    CallbackQueryHandler(delete_menu, pattern='back')],
+                'delete.specialists.confirm': [
+                    CallbackQueryHandler(SpecialistDelete.delete, pattern='confirmed'),
+                    CallbackQueryHandler(SpecialistDelete.show_all, pattern='back')],
+                'delete.services.show_all': [
+                    CallbackQueryHandler(ServiceDelete.confirm, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
+                    CallbackQueryHandler(delete_menu, pattern='back')],
+                'delete.services.confirm': [
+                    CallbackQueryHandler(ServiceDelete.delete, pattern='confirmed'),
+                    CallbackQueryHandler(ServiceDelete.show_all, pattern='back')],
                 'ask_for_help': [CallbackQueryHandler(help_menu, pattern='yes'),
                                  CallbackQueryHandler(info_menu, pattern='no'),
                                  CallbackQueryHandler(start, pattern='back')],
