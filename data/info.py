@@ -12,7 +12,7 @@ def info_menu(_, context: CallbackContext):
          [InlineKeyboardButton('Специалисты', callback_data='specialists')],
          [InlineKeyboardButton('О нас', callback_data='about')],
          [InlineKeyboardButton('Наш адрес', callback_data='address')],
-         [InlineKeyboardButton('Наши соц. сети', callback_data='social')],
+         [InlineKeyboardButton('Наши соц.сети', callback_data='socials')],
          [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', 'https://belberry.net'))],
          [InlineKeyboardButton('Рейтинг клиники и отзывы', url=cfg.get('URL для отзыва', 'https://belberry.net'))],
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]]
@@ -74,4 +74,13 @@ def choose_route_engine(_, context: CallbackContext):
 
 @delete_last_message
 def show_socials(_, context: CallbackContext):
-    pass
+    cfg = get_config()
+    markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+    if cfg.get('Соц.сети'):
+        text = ('<b>Наши социальные сети:</b>\n\n' +
+                '\n'.join([f'• {s}' for s in cfg['Соц.сети']]))
+    else:
+        text = 'На данный момент у клиники не указаны никакие социальные сети'
+    return context.bot.send_message(
+        context.user_data['id'], text, reply_markup=markup, parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True), 'socials_menu'

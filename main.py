@@ -1,8 +1,7 @@
-from dotenv import load_dotenv
 import cloudinary
-from telegram import Update
+from dotenv import load_dotenv
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
-                          CallbackQueryHandler, MessageHandler, Filters, CallbackContext)
+                          CallbackQueryHandler, MessageHandler, Filters)
 
 from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
 from data.admin.panel import *
@@ -15,7 +14,6 @@ from data.register import *
 
 
 # Осторожно, костыль!!!!
-from data.utils import upload_img, delete_img
 
 
 def clear_keyboard(_, context):
@@ -42,12 +40,12 @@ def main():
                          CallbackQueryHandler(show_data, pattern='data'),
                          CallbackQueryHandler(ask_resetting_data, pattern='ask'),
                          CallbackQueryHandler(add_menu, pattern='add_menu')],
-                'data_resetting': [CallbackQueryHandler(reset_data, pattern='change_yes'),
-                                   CallbackQueryHandler(start, pattern='change_no')],
-                'data_requesting': [CallbackQueryHandler(start, pattern='menu'),
-                                    CallbackQueryHandler(request_changing_data, pattern='')],
-                'data': [CallbackQueryHandler(show_data, pattern='data'),
-                         MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, change_data)],
+                'admin.data_resetting': [CallbackQueryHandler(reset_data, pattern='change_yes'),
+                                         CallbackQueryHandler(start, pattern='change_no')],
+                'admin.data_requesting': [CallbackQueryHandler(start, pattern='menu'),
+                                          CallbackQueryHandler(request_changing_data, pattern='')],
+                'admin.data': [CallbackQueryHandler(show_data, pattern='data'),
+                               MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, change_data)],
                 'add_menu': [CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='add_specialists'),
                              CallbackQueryHandler(ServiceAddition.ask_name, pattern='add_services'),
                              CallbackQueryHandler(start, pattern='back')],
@@ -87,6 +85,7 @@ def main():
                 'address_menu': [CallbackQueryHandler(choose_route_engine, pattern='route'),
                                  CallbackQueryHandler(info_menu, pattern='back')],
                 'route_menu': [CallbackQueryHandler(show_address, pattern='back')],
+                'socials_menu': [CallbackQueryHandler(info_menu, pattern='back')],
                 'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
                               CallbackQueryHandler(ask_phone, pattern='ask_phone'),
                               CallbackQueryHandler(show_contacts, pattern='contacts'),
