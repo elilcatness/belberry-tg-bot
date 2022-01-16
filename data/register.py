@@ -36,10 +36,10 @@ class Register:
             callback = 'register_name'
         if 'specialists' in last_block:
             _type = 'Specialist'
-            entity_id = int(context.match.string.split('register')[0])
+            entity_id = int(context.match.string.split()[0])
         elif 'services' in last_block:
             _type = 'Service'
-            entity_id = int(context.match.string.split('register')[0])
+            entity_id = int(context.match.string.split()[0])
         else:
             _type, entity_id = None, None
         context.user_data['register'] = {'_type': _type, 'entity_id': entity_id}

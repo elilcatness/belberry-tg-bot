@@ -60,9 +60,18 @@ def main():
                     MessageHandler(Filters.text, SpecialistAddition.ask_description),
                     CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='back')],
                 'SpecialistAddition.ask_description': [
-                    MessageHandler(Filters.text, SpecialistAddition.ask_photo),
-                    CallbackQueryHandler(SpecialistAddition.ask_photo, pattern='skip_description'),
+                    MessageHandler(Filters.text, SpecialistAddition.ask_services),
+                    CallbackQueryHandler(SpecialistAddition.ask_services, pattern='skip_description'),
                     CallbackQueryHandler(SpecialistAddition.ask_speciality, pattern='back')],
+                'SpecialistAddition.services.show_all': [
+                    CallbackQueryHandler(SpecialistAddition.handle_service_selection, pattern='[0-9]+'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(SpecialistAddition.ask_photo, pattern='next'),
+                    CallbackQueryHandler(SpecialistAddition.ask_description, pattern='back')
+                ],
                 'SpecialistAddition.ask_photo': [
                     MessageHandler(Filters.photo | Filters.document, SpecialistAddition.finish),
                     CallbackQueryHandler(SpecialistAddition.finish, pattern='skip_photo'),
@@ -88,7 +97,7 @@ def main():
                               CallbackQueryHandler(show_socials, pattern='socials'),
                               CallbackQueryHandler(ask_for_help_menu, pattern='back')],
                 'info.specialists.show_all': [
-                    CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+ register'),
+                    CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+ action'),
                     CallbackQueryHandler(SpecialistViewPublic.show_services, pattern='[0-9]+'),
                     CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
                     CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
@@ -103,7 +112,7 @@ def main():
                     MessageHandler(Filters.text('Вернуться назад'), Register.register_name)
                 ],
                 'info.specialists.services.show_all': [
-                    CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]* register'),
+                    CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]* action'),
                     CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
                     CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),

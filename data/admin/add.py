@@ -7,12 +7,14 @@ from data.db.models.service import Service
 from data.db.models.specialist import Specialist
 from data.general import start
 from data.utils import delete_last_message, upload_img, process_view, terminate_jobs
+from data.view import ServiceViewPublic
 
 
 @delete_last_message
 def add_menu(_, context: CallbackContext):
-    markup = InlineKeyboardMarkup([[InlineKeyboardButton('Специалисты', callback_data='add_specialists')],
-                                   [InlineKeyboardButton('Услуги', callback_data='add_services')],
+    context.user_data['last_block'] = 'add'
+    markup = InlineKeyboardMarkup([[InlineKeyboardButton('Специалист', callback_data='add_specialists')],
+                                   [InlineKeyboardButton('Услуга', callback_data='add_services')],
                                    [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     return (context.bot.send_message(context.user_data['id'], 'Выберите сущность для добавления',
                                      reply_markup=markup), 'add_menu')
@@ -63,9 +65,41 @@ class SpecialistAddition:
 
     @staticmethod
     @delete_last_message
-    def ask_photo(update: Update, context: CallbackContext):
+    def ask_services(update: Update, context: CallbackContext):
         if update.message and update.message.text:
             context.user_data['specialist_addition']['description'] = update.message.text.strip()
+        context.user_data['selected_ids'] = []
+        context.user_data['last_block'] = 'SpecialistAddition'
+        context.user_data['action_btn_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
+        return ServiceViewPublic.show_all(
+            update, context, is_sub_already=True,
+            prefix=(f'Выберите услугу для специалиста <b>'
+                    f'{context.user_data["specialist_addition"]["speciality"]} '
+                    f'{context.user_data["specialist_addition"]["full_name"]}</b>\n\n'
+                    f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n'),
+            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')]])
+
+    @staticmethod
+    def handle_service_selection(_, context: CallbackContext):
+        service_id = int(context.match.string.split()[0])
+        if service_id in context.user_data['selected_ids']:
+            idx = context.user_data['selected_ids'].index(service_id)
+            end = (context.user_data['selected_ids'][idx + 1:]
+                   if idx + 1 < len(context.user_data['selected_ids']) else [])
+            context.user_data['selected_ids'] = context.user_data['selected_ids'][:idx] + end
+        else:
+            context.user_data['selected_ids'].append(service_id)
+        return ServiceViewPublic.show_all(
+            _, context, is_sub_already=True,
+            prefix=(f'Выберите услугу для специалиста <b>'
+                    f'{context.user_data["specialist_addition"]["speciality"]} '
+                    f'{context.user_data["specialist_addition"]["full_name"]}</b>\n\n'
+                    f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n'),
+            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')]])
+
+    @staticmethod
+    @delete_last_message
+    def ask_photo(_, context: CallbackContext):
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton('Пропустить поле «Фото»', callback_data='skip_photo')],
              [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
@@ -86,8 +120,18 @@ class SpecialistAddition:
                 return SpecialistAddition.ask_photo(update, context)
         with db_session.create_session() as session:
             full_name = context.user_data['specialist_addition']['full_name']
-            session.add(Specialist(**context.user_data.pop('specialist_addition')))
+            spec = Specialist(**context.user_data.pop('specialist_addition'))
+            session.add(spec)
             session.commit()
+            for service_id in context.user_data['selected_ids']:
+                service = session.query(Service).get(service_id)
+                spec.services.append(service)
+                session.add(spec)
+                session.commit()
+        if context.user_data.get('selected_ids'):
+            context.user_data.pop('selected_ids')
+        if context.user_data.get('action_btn_text'):
+            context.user_data.pop('action_btn_text')
         context.bot.send_message(context.user_data['id'],
                                  f'Специалист <b>{full_name}</b> был успешно добавлен',
                                  parse_mode=ParseMode.HTML)

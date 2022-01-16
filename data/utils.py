@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Union
 
 from cloudinary import uploader
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
@@ -12,7 +13,7 @@ from data.db.models.state import State
 
 
 def delete_last_message(func):
-    def wrapper(update, context: CallbackContext):
+    def wrapper(update, context: CallbackContext, **kwargs):
         if context.user_data.get('message_id'):
             try:
                 context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
@@ -24,7 +25,7 @@ def delete_last_message(func):
                                           context.user_data['messages_to_delete'].pop(0))
             except BadRequest:
                 pass
-        output = func(update, context)
+        output = func(update, context, **kwargs)
         if isinstance(output, tuple):
             msg, callback = output
             context.user_data['message_id'] = msg.message_id
@@ -147,7 +148,8 @@ def make_agree_with_number(n: int, verbose_names: list[str]):
 def build_pagination(context: CallbackContext, array: list[dict],
                      pag_step: int, current_page: int, verbose_names: list[str],
                      sub_category_verbose_name: str, is_sub_already=False,
-                     found_phrases: list[str] = None):
+                     action_btn_text: Union[str, dict] = None, found_phrases: list[str] = None,
+                     found_prefix: str = '', extra_buttons: list = None):
     array_length = len(array)
     verbose_name = make_agree_with_number(array_length, verbose_names)
     pages_count = (
@@ -160,16 +162,26 @@ def build_pagination(context: CallbackContext, array: list[dict],
     found_phrase = make_agree_with_number(array_length, ['Найден', 'Найдено', 'Найдено'] if not found_phrases
                                           else found_phrases)
     msg = context.bot.send_message(context.user_data['id'],
-                                   f'{found_phrase} <b>{array_length}</b> {verbose_name}'
-                                   f'{context.user_data.get("found_prefix", "")}',
+                                   f'{found_prefix}{found_phrase} <b>{array_length}</b> {verbose_name}'
+                                   f'{context.user_data.get("found_suffix", "")}',
                                    parse_mode=ParseMode.HTML)
     context.user_data['messages_to_delete'] = context.user_data.get(
         'messages_to_delete', []) + [msg.message_id]
     for d in array[start:end]:
         d_id = d.pop('id')
-        buttons = [[InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')]]
+        buttons = []
         if not is_sub_already:
-            buttons.append([InlineKeyboardButton('Записаться', callback_data=f'{d_id} register')])
+            buttons.append([InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')])
+        if isinstance(action_btn_text, str):
+            action_text = action_btn_text
+        elif context.user_data.get('selected_ids') and isinstance(action_btn_text, dict):
+            if d_id in context.user_data['selected_ids']:
+                action_text = action_btn_text['active']
+            else:
+                action_text = action_btn_text['inactive']
+        else:
+            action_text = 'Записаться'
+        buttons.append([InlineKeyboardButton(action_text, callback_data=f'{d_id} action')])
         markup = InlineKeyboardMarkup(buttons)
         try:
             photo = d.pop('photo')
@@ -191,6 +203,8 @@ def build_pagination(context: CallbackContext, array: list[dict],
         if current_page < pages_count:
             pag_block.append(InlineKeyboardButton('»', callback_data='next_page'))
         buttons.append(pag_block)
+    if extra_buttons:
+        buttons.extend(extra_buttons)
     buttons.extend([[InlineKeyboardButton(
         'Перейти на сайт', url=get_config().get('URL клиники', {}).get('val', 'https://belberry.net'))],
         [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
