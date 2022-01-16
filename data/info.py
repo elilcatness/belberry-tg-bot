@@ -1,17 +1,24 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
+from telegram.ext import CallbackContext
 
 from data.utils import get_config, delete_last_message
 
 
 @delete_last_message
-def info_menu(_, context):
+def info_menu(_, context: CallbackContext):
+    cfg = get_config()
     markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton('О нас', callback_data='about')],
-         [InlineKeyboardButton(
-             'Наши адреса' if len(get_config().get('Адрес клиники', '').split(';')) > 1
-             else 'Наш адрес', callback_data='address')],
-         [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
-    return (context.user_data['id'], 'Выберите тип информации'), {'reply_markup': markup}, 'info_menu'
+        [[InlineKeyboardButton('Услуги', callback_data='services')],
+         [InlineKeyboardButton('Специалисты', callback_data='specialists')],
+         [InlineKeyboardButton('О нас', callback_data='about')],
+         [InlineKeyboardButton('Наш адрес', callback_data='address')],
+         [InlineKeyboardButton('Наши соц. сети', callback_data='social')],
+         [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', 'https://belberry.net'))],
+         [InlineKeyboardButton('Рейтинг клиники и отзывы', url=cfg.get('URL для отзыва', 'https://belberry.net'))],
+         [InlineKeyboardButton('Вернуться назад', callback_data='back')]]
+    )
+    return (context.bot.send_message(context.user_data['id'], 'Выберите опцию', reply_markup=markup),
+            'info_menu')
 
 
 @delete_last_message
@@ -33,12 +40,38 @@ def about(_, context):
 
 
 @delete_last_message
-def show_address(_, context):
-    markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
-    address_key = 'Наш адрес'
-    address = get_config().get('Адрес клиники', 'Не указан')
-    if len(address.split(';')) > 1:
-        address = '\n' + '\n'.join([f'• {add}' for add in address.split(';')])
-        address_key = 'Наши адреса'
-    return ((context.user_data['id'], f'<b>{address_key}:</b> {address}'),
-            {'reply_markup': markup, 'parse_mode': ParseMode.HTML}, 'address_menu')
+def show_address(_, context: CallbackContext):
+    cfg = get_config()
+    markup = InlineKeyboardMarkup(
+        [[InlineKeyboardButton('Проложить маршрут', callback_data='route')],
+         [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+    text = f'<b>Наш адрес:</b> {cfg.get("Адрес клиники", "Не указан")}'
+    if cfg.get('Фото карты'):
+        return (context.bot.send_photo(context.user_data['id'], cfg['Фото карты'], text,
+                                       reply_markup=markup, parse_mode=ParseMode.HTML),
+                'address_menu')
+    return context.bot.send_message(context.user_data['id'], text, reply_markup=markup,
+                                    parse_mode=ParseMode.HTML), 'address_menu'
+
+
+@delete_last_message
+def choose_route_engine(_, context: CallbackContext):
+    cfg = get_config()
+    buttons = []
+    any_route = False
+    if cfg.get('URL маршрута 2ГИС') and cfg['URL маршрута 2ГИС'].startswith('http'):
+        any_route = True
+        buttons.append([InlineKeyboardButton('2ГИС', url=cfg['URL маршрута 2ГИС'])])
+    if cfg.get('URL маршрута Яндекс.Карты') and cfg['URL маршрута Яндекс.Карты'].startswith('http'):
+        any_route = True
+        buttons.append([InlineKeyboardButton('Яндекс.Карты', url=cfg['URL маршрута Яндекс.Карты'])])
+    text = ('Выберите сервис для прокладывания маршрута' if any_route
+            else 'Функция прокладывания маршрута недоступна на данный момент')
+    buttons.append([InlineKeyboardButton('Вернуться назад', callback_data='back')])
+    return context.bot.send_message(context.user_data['id'], text,
+                                    reply_markup=InlineKeyboardMarkup(buttons)), 'route_menu'
+
+
+@delete_last_message
+def show_socials(_, context: CallbackContext):
+    pass
