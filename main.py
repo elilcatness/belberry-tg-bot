@@ -14,7 +14,7 @@ from data.admin.panel import show_data, reset_data, ask_resetting_data, request_
 from data.consult import Consult
 from data.db import db_session
 from data.db.models.state import State
-from data.general import ask_for_help_menu, say_goodbye, start
+from data.general import ask_for_help_menu, later, start
 from data.help import help_menu
 from data.info import info_menu, show_address, show_socials, about, choose_route_engine
 from data.register import Register
@@ -42,7 +42,7 @@ def main():
         per_message=False,
         entry_points=[CommandHandler('start', start)],
         states={'menu': [CallbackQueryHandler(ask_for_help_menu, pattern='help'),
-                         CallbackQueryHandler(say_goodbye, pattern='another_time'),
+                         CallbackQueryHandler(later, pattern='later'),
                          CallbackQueryHandler(show_data, pattern='data'),
                          CallbackQueryHandler(ask_resetting_data, pattern='ask'),
                          CallbackQueryHandler(add_menu, pattern='add_menu'),

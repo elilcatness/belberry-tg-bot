@@ -1,6 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from telegram.ext import ConversationHandler
+from telegram.ext import ConversationHandler, CallbackContext
 
+from data.info import info_menu
 from data.utils import delete_last_message, get_config, clear_temp_vars
 
 
@@ -54,6 +55,9 @@ def ask_for_help_menu(_, context):
 
 
 @delete_last_message
-def say_goodbye(_, context):
-    return ((context.user_data['id'], 'Для того чтобы снова воспользоваться ботом, введите /start'),
-            ConversationHandler.END)
+def later(_, context: CallbackContext):
+    context.bot.send_message(
+        context.user_data['id'],
+        f'Хорошо, {context.user_data["first_name"]}.\nЕсли Вы решите обратиться в нашу клинику, '
+        f'Вы можете сделать это в данном чате')
+    return info_menu(_, context)
