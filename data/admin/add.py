@@ -7,7 +7,7 @@ from data.db.models.service import Service
 from data.db.models.specialist import Specialist
 from data.general import start
 from data.utils import delete_last_message, upload_img, process_view, terminate_jobs
-from data.view import ServiceViewPublic
+from data.view import ServiceViewPublic, SpecialistViewPublic
 
 
 @delete_last_message
@@ -170,9 +170,45 @@ class ServiceAddition:
 
     @staticmethod
     @delete_last_message
-    def ask_photo(update: Update, context: CallbackContext):
+    def ask_specialists(update: Update, context: CallbackContext):
         if update.message and update.message.text:
             context.user_data['service_addition']['description'] = update.message.text.strip()
+        context.user_data['selected_ids'] = []
+        context.user_data['last_block'] = 'ServiceAddition'
+        context.user_data['action_btn_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
+        return SpecialistViewPublic.show_all(
+            update, context, is_sub_already=True,
+            prefix=(f'Выберите специалистов, предоставляющих услугу <b>'
+                    f'{context.user_data["service_addition"]["name"]}</b>\n\n'
+                    f'<b>Выбрано специалистов:</b> {len(context.user_data["selected_ids"])}\n\n'),
+            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')],
+                           [InlineKeyboardButton('Пропустить поле «Специалисты»',
+                                                 callback_data='skip_specialists')]])
+
+    @staticmethod
+    def handle_specialist_selection(_, context: CallbackContext):
+        spec_id = int(context.match.string.split()[0])
+        if spec_id in context.user_data['selected_ids']:
+            idx = context.user_data['selected_ids'].index(spec_id)
+            end = (context.user_data['selected_ids'][idx + 1:]
+                   if idx + 1 < len(context.user_data['selected_ids']) else [])
+            context.user_data['selected_ids'] = context.user_data['selected_ids'][:idx] + end
+        else:
+            context.user_data['selected_ids'].append(spec_id)
+        return SpecialistViewPublic.show_all(
+            _, context, is_sub_already=True,
+            prefix=(f'Выберите специалистов, предоставляющих услугу <b>'
+                    f'{context.user_data["service_addition"]["name"]}</b>\n\n'
+                    f'<b>Выбрано специалистов:</b> {len(context.user_data["selected_ids"])}\n\n'),
+            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')],
+                           [InlineKeyboardButton('Пропустить поле «Специалисты»',
+                                                 callback_data='skip_specialists')]])
+
+    @staticmethod
+    @delete_last_message
+    def ask_photo(_, context: CallbackContext):
+        if context.match and context.match.string and context.match.string == 'skip_descriptions':
+            context.user_data['selected_ids'] = []
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton('Пропустить поле «Фотография»', callback_data='skip_photo')],
              [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
@@ -206,8 +242,16 @@ class ServiceAddition:
                 terminate_jobs(context, job_name)
         with db_session.create_session() as session:
             name = context.user_data['service_addition']['name']
-            session.add(Service(**context.user_data.pop('service_addition')))
+            service = Service(**context.user_data.pop('service_addition'))
+            session.add(service)
             session.commit()
+            for spec_id in context.user_data['selected_ids']:
+                spec = session.query(Specialist).get(spec_id)
+                service.specialists.append(spec)
+                session.add(service)
+                session.commit()
+        context.user_data['selected_ids'] = []
+        context.user_data['action_btn_text'] = None
         context.bot.send_message(context.user_data['id'],
                                  f'Услуга <b>{name}</b> была успешно добавлена',
                                  parse_mode=ParseMode.HTML)

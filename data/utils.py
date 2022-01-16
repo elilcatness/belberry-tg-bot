@@ -112,7 +112,10 @@ def process_view(context: CallbackContext):
         context.job.context.user_data['process.msg_id'] = context.bot.send_message(
             user_id, f'{msg_text}{"." * count}').message_id
     else:
-        context.bot.edit_message_text(f'{msg_text}{"." * count}', user_id, msg_id)
+        try:
+            context.bot.edit_message_text(f'{msg_text}{"." * count}', user_id, msg_id)
+        except BadRequest:
+            pass
     context.job.context.user_data['process.count'] = (count + 1) % 4
 
 
@@ -174,7 +177,7 @@ def build_pagination(context: CallbackContext, array: list[dict],
             buttons.append([InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')])
         if isinstance(action_btn_text, str):
             action_text = action_btn_text
-        elif context.user_data.get('selected_ids') and isinstance(action_btn_text, dict):
+        elif isinstance(action_btn_text, dict):
             if d_id in context.user_data['selected_ids']:
                 action_text = action_btn_text['active']
             else:

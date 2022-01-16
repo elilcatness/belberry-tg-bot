@@ -12,11 +12,17 @@ from data.utils import get_config, delete_last_message
 class Register:
     return_functions = {
         'info.specialists': ('from data.view import SpecialistViewPublic',
-                             'SpecialistViewPublic.show_all'),
+                             'SpecialistViewPublic.show_all',
+                             'info'),
         'info.specialists.services': ('from data.view import SpecialistViewPublic',
-                                      'SpecialistViewPublic.show_all'),
+                                      'SpecialistViewPublic.show_all',
+                                      'info'),
         'info.services': ('from data.view import ServiceViewPublic',
-                          'ServiceViewPublic.show_all'),
+                          'ServiceViewPublic.show_all',
+                          'info'),
+        'info.services.specialists': ('from data.view import ServiceViewPublic',
+                                      'ServiceViewPublic.show_all',
+                                      'info')
     }
 
     @staticmethod
@@ -89,7 +95,8 @@ class Register:
             update.message.reply_text('Ваша заявка была успешно отправлена. Ожидайте звонка',
                                       reply_markup=markup)
         if context.user_data.get('consult_return_fn'):
-            import_statement, func = context.user_data.pop('consult_return_fn')
+            import_statement, func, last_block = context.user_data.pop('consult_return_fn')
             exec(import_statement)
+            context.user_data['last_block'] = last_block
             return eval(f'{func}(update, context)')
         return start(update, context)
