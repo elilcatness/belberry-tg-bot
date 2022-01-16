@@ -9,12 +9,12 @@ def start(update, context):
     cfg = get_config()
     buttons = [
          [InlineKeyboardButton('Нужна помощь?', callback_data='help')],
-         [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', 'https://belberry.net/'))],
+         [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', {}).get('val', 'https://belberry.net/'))],
          [InlineKeyboardButton('Позже', callback_data='later')]]
-    phone = cfg.get('Номер телефона', 'Не указан')
-    if len(phone.split(';')) > 1:
-        phone = phone.split(';')[0]
-    text = (f'Привет, %s! Я ассистент клиники <b>{cfg.get("Название клиники", "*")}</b>.\n'
+    phone = cfg.get('Номер телефона', {}).get('val', 'Не указан')
+    if len(phone) > 1:
+        phone = phone[0]
+    text = (f'Привет, %s! Я ассистент клиники <b>{cfg.get("Название клиники", {}).get("val", "*")}</b>.\n'
             f'Я помогу узнать про нашу клинику подробнее.\n'
             f'Могу быстро записать на приём к доктору.\n'
             f'А также буду напоминать о приёме, актуальных акциях и индивидуальных предложениях 😊\n\n'
@@ -22,12 +22,12 @@ def start(update, context):
     if update.message:
         context.user_data['id'] = update.message.from_user.id
         context.user_data['first_name'] = update.message.from_user.first_name
-    if str(context.user_data['id']) in cfg.get('admins', []):
+    if str(context.user_data['id']) in cfg.get('admins', {}).get('val', []):
         buttons.extend([[InlineKeyboardButton('Изменить данные (admin)', callback_data='data')],
                         [InlineKeyboardButton('Сбросить настройки (admin)', callback_data='ask')],
                         [InlineKeyboardButton('Добавить сущность (admin)', callback_data='add_menu')]])
-    if cfg.get("Фото клиники"):
-        return (context.bot.send_photo(context.user_data['id'], cfg["Фото клиники"],
+    if cfg.get("Фото клиники", {}).get('val'):
+        return (context.bot.send_photo(context.user_data['id'], cfg["Фото клиники"]['val'],
                                        text % context.user_data['first_name'],
                                        reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
                 'menu')

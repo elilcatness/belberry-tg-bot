@@ -20,17 +20,25 @@ def show_data(_, context):
 @delete_last_message
 def request_changing_data(_, context):
     context.user_data['key_to_change'] = context.match.string
-    current_value = get_config()[context.match.string]
-    if isinstance(current_value, list):
-        current_value = ';'.join(map(str, current_value))
+    current_item = get_config()[context.match.string]
+    val = current_item['val']
+    if isinstance(val, list):
+        val = ';'.join(map(str, val))
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton(text='Вернуться назад', callback_data='data')]])
-    return (context.bot.send_message(context.user_data['id'],
-                                     f'На что вы хотите заменить <b>{context.match.string}</b>?\n'
-                                     f'\n<b>Текущее значение:</b> {current_value}\n'
-                                     'Если это список, то введите элементы через ;',
-                                     reply_markup=markup, disable_web_page_preview=True,
-                                     parse_mode=ParseMode.HTML), 'admin.data')
+    if current_item['can_be_list']:
+        text = (f'На что вы хотите заменить <b>{context.match.string}</b>?\n'
+                f'\n<b>Текущее значение:</b> {val}'
+                f'\n<b>Может ли быть списком:</b> Да\n\n'
+                'Если это список, то введите элементы через ;')
+    else:
+        text = (f'На что вы хотите заменить <b>{context.match.string}</b>?\n'
+                f'\n<b>Текущее значение:</b> {val}'
+                f'\n<b>Может ли быть списком:</b> Нет')
+    print(text)
+    return context.bot.send_message(
+        context.user_data['id'], text, reply_markup=markup, parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True), 'admin.data'
 
 
 @delete_last_message
@@ -42,10 +50,8 @@ def change_data(update, context):
     if key == 'admins' and str(update.message.from_user.id) not in update.message.text.split(';'):
         update.message.reply_text('Вы не можете удалить сами себя из admins')
         return show_data(update, context)
-    if isinstance(cfg[key], list):
-        cfg[key] = [val.strip() for val in update.message.text.split(';')]
-    else:
-        cfg[key] = update.message.text.strip()
+    val = update.message.text.strip().split(';')
+    cfg[key]['val'] = val[0] if len(val) == 1 or not cfg[key]['can_be_list'] else [v.strip() for v in val]
     save_config(cfg)
     update.message.reply_text(f'Переменная <b>{context.user_data["key_to_change"]}</b> была обновлена',
                               parse_mode=ParseMode.HTML)

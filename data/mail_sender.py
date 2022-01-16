@@ -8,8 +8,8 @@ from data.utils import get_config
 def send_mail(email, subject, text):
     cfg = get_config()
     try:
-        addr_from = cfg['smtp_from']
-        password = cfg['smtp_password']
+        addr_from = cfg['smtp_from']['val']
+        password = cfg['smtp_password']['val']
 
         msg = MIMEMultipart()
         msg['From'] = addr_from
@@ -19,7 +19,7 @@ def send_mail(email, subject, text):
         body = text
         msg.attach(MIMEText(body, 'html'))
 
-        server = SMTP_SSL(cfg['smtp_host'], cfg['smtp_port'])
+        server = SMTP_SSL(cfg['smtp_host']['val'], cfg['smtp_port']['val'])
         server.login(addr_from, password)
 
         server.send_message(msg)

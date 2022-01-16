@@ -32,35 +32,3 @@ def show_contacts(_, context):
                                       f'<b>{phone_key}:</b> {phone_data}\n'
                                       f'<b>E-mail:</b> {email_data}'),
             {'reply_markup': markup, 'parse_mode': ParseMode.HTML}, 'contacts')
-
-
-@delete_last_message
-def ask_phone(_, context):
-    markup = ReplyKeyboardMarkup([[KeyboardButton('Взять из Telegram', request_contact=True)],
-                                  [KeyboardButton('Вернуться назад')]],
-                                 resize_keyboard=True, one_time_keyboard=True)
-    return ((context.user_data['id'], 'Я так рад, что Вы уже были у нас!\n\n'
-                                      'Оставьте Ваш номер телефона, и мы перезвоним'),
-            {'reply_markup': markup}, 'consult')
-
-
-@delete_last_message
-def consult(update, context):
-    cfg = get_config()
-    phone_number = (update.message.contact.phone_number
-                    if getattr(update.message, 'contact')
-                    and getattr(update.message.contact, 'phone_number') else update.message.text)
-    markup = ReplyKeyboardRemove()
-    email = cfg.get('email')
-    if email and len(email.split(';')) > 1:
-        email = email.split(';')[0]
-    if not email or not send_mail(
-            email, 'Заявка на консультацию',
-            f'Заявка на консультацию поступила с указанием следующего номера: {phone_number}\n\n'
-            f'<div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
-            f'https://t.me/{context.bot.username}</i></div>'):
-        update.message.reply_text('Произошла ошибка при создании заявки', reply_markup=markup)
-    else:
-        update.message.reply_text('Спасибо за заявку. Мы как можно скорее с Вами свяжемся',
-                                  reply_markup=markup)
-    return help_menu(update, context)

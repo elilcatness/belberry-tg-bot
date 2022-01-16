@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
 
+from data.consult import Consult
 from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
 from data.admin.panel import *
 from data.db import db_session
@@ -81,24 +82,25 @@ def main():
                               CallbackQueryHandler(show_address, pattern='address'),
                               CallbackQueryHandler(show_socials, pattern='socials'),
                               CallbackQueryHandler(ask_for_help_menu, pattern='back')],
-                'about_menu': [CallbackQueryHandler(info_menu, pattern='back')],
+                'about_menu': [CallbackQueryHandler(info_menu, pattern='back'),
+                               CallbackQueryHandler(Consult.ask_phone, pattern='consult')],
+                'about.consult': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Consult.finish),
+                                  MessageHandler(Filters.text('Вернуться назад'), about)],
                 'address_menu': [CallbackQueryHandler(choose_route_engine, pattern='route'),
                                  CallbackQueryHandler(info_menu, pattern='back')],
                 'route_menu': [CallbackQueryHandler(show_address, pattern='back')],
-                'socials_menu': [CallbackQueryHandler(info_menu, pattern='back')],
-                'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
-                              CallbackQueryHandler(ask_phone, pattern='ask_phone'),
-                              CallbackQueryHandler(show_contacts, pattern='contacts'),
-                              CallbackQueryHandler(ask_for_help_menu, pattern='back')],
-                'contacts': [CallbackQueryHandler(help_menu, pattern='back')],
-                'consult': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, consult),
-                            MessageHandler(Filters.text('Вернуться назад'), help_menu)],
-                'register_name': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.text,
-                                                 register_phone),
-                                  MessageHandler(Filters.text('Вернуться назад'), clear_keyboard)],
-                'register_phone': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all,
-                                                  finish_registration),
-                                   MessageHandler(Filters.text('Вернуться назад'), register_name)]},
+                'socials_menu': [CallbackQueryHandler(info_menu, pattern='back')]},
+                # 'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
+                #               CallbackQueryHandler(ask_phone, pattern='ask_phone'),
+                #               CallbackQueryHandler(show_contacts, pattern='contacts'),
+                #               CallbackQueryHandler(ask_for_help_menu, pattern='back')],
+                # 'contacts': [CallbackQueryHandler(help_menu, pattern='back')],
+                # 'register_name': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.text,
+                #                                  register_phone),
+                #                   MessageHandler(Filters.text('Вернуться назад'), clear_keyboard)],
+                # 'register_phone': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all,
+                #                                   finish_registration),
+                #                    MessageHandler(Filters.text('Вернуться назад'), register_name)]},
         fallbacks=[CommandHandler('start', start)])
     updater.dispatcher.add_handler(conv_handler)
     load_states(updater, conv_handler)

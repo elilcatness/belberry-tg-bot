@@ -1,29 +1,92 @@
 {
-  "admins": [
-    "738699147",
-    "142616557"
-  ],
-  "Название клиники": "Клиника для животных",
-  "Номер телефона": "+74952512312",
-  "Адрес клиники": "Москва, Варшавское шоссе, д.118, к.1. этаж 13, офис 22",
-  "Описание клиники": "Уютное место для различных животных!",
-  "Соц.сети": [
-    "https://www.facebook.com/belberry.for.med",
-    "https://instagram.com/belberry_for_med"
-  ],
-  "URL клиники": "https://belberry.net",
-  "URL клиники на Яндекс.Картах": "https://yandex.ru/maps/org/belberry/20503258053/?ll=37.618022%2C55.631768&z=17.89",
-  "URL для отзыва": "https://yandex.ru/maps/org/belberry/20503258053/?add-review=true&ll=37.618022%2C55.631768&z=17.89",
-  "URL маршрута 2ГИС": "https://2gis.ru/moscow/directions/points/%7C37.618441%2C55.631533%3B70000001038159673?m=37.618441%2C55.631533%2F16",
-  "URL маршрута Яндекс.Карты": "https://yandex.ru/maps/213/moscow/?ll=37.619306%2C55.631631&mode=routes&rtext=~55.631768%2C37.618022&rtt=mt&ruri=~ymapsbm1%3A%2F%2Forg%3Foid%3D20503258053&z=16.16",
-  "Фото клиники": "https://img.freepik.com/free-photo/covid-19-animals-quarantine-concept-young-man-medical-mask-holding-cute-black-pug-dog-showing-okay-sign-like-approve-standing-white_1258-32716.jpg?size=626&ext=jpg",
-  "Фото карты": "https://res.cloudinary.com/belberry/image/upload/v1642321734/q034yzdfecremwbnwywq.png",
-  "email": "elilcatness@gmail.com",
-  "smtp_host": "smtp.mail.ru",
-  "smtp_port": "465",
-  "smtp_from": "belberry_notifications@mail.ru",
-  "smtp_password": "7H6ws8p3V6nz1wEVuDxs",
-  "cloudinary.cloud_name": "belberry",
-  "cloudinary.api_key": "526945777686722",
-  "cloudinary.api_secret": "27WCCHvLrbMh_SI4vXbXLFhaTrk"
+  "admins": {
+    "val": [
+      "738699147",
+      "142616557"
+    ],
+    "can_be_list": true
+  },
+  "Название клиники": {
+    "val": "Клиника для животных",
+    "can_be_list": false
+  },
+  "Описание клиники": {
+    "val": "Уютное место для различных животных!",
+    "can_be_list": false
+  },
+  "Номер телефона": {
+    "val": "+74952512312",
+    "can_be_list": true
+  },
+  "Адрес клиники": {
+    "val": "Москва, Варшавское шоссе, д.118, к.1. этаж 13, офис 22",
+    "can_be_list": false
+  },
+  "Соц.сети": {
+    "val": [
+      "https://www.facebook.com/belberry.for.med",
+      "https://instagram.com/belberry_for_med"
+    ],
+    "can_be_list": true
+  },
+  "URL клиники": {
+    "val": "https://belberry.net",
+    "can_be_list": false
+  },
+  "URL клиники на Яндекс.Картах": {
+    "val": "https://yandex.ru/maps/org/belberry/20503258053/?ll=37.618022%2C55.631768&z=17.89",
+    "can_be_list": false
+  },
+  "URL для отзыва": {
+    "val": "https://yandex.ru/maps/org/belberry/20503258053/?add-review=true&ll=37.618022%2C55.631768&z=17.89",
+    "can_be_list": false
+  },
+  "URL маршрута 2ГИС": {
+    "val": "https://2gis.ru/moscow/directions/points/%7C37.618441%2C55.631533%3B70000001038159673?m=37.618441%2C55.631533%2F16",
+    "can_be_list": false
+  },
+  "URL маршрута Яндекс.Карты": {
+    "val": "https://yandex.ru/maps/213/moscow/?ll=37.619306%2C55.631631&mode=routes&rtext=~55.631768%2C37.618022&rtt=mt&ruri=~ymapsbm1%3A%2F%2Forg%3Foid%3D20503258053&z=16.16",
+    "can_be_list": false
+  },
+  "Фото клиники": {
+    "val": "https://img.freepik.com/free-photo/covid-19-animals-quarantine-concept-young-man-medical-mask-holding-cute-black-pug-dog-showing-okay-sign-like-approve-standing-white_1258-32716.jpg?size=626&ext=jpg",
+    "can_be_list": false
+  },
+  "Фото карты": {
+    "val": "https://res.cloudinary.com/belberry/image/upload/v1642321734/q034yzdfecremwbnwywq.png",
+    "can_be_list": false
+  },
+  "email": {
+    "val": "elilcatness@gmail.com",
+    "can_be_list": true
+  },
+  "smtp_host": {
+    "val": "smtp.mail.ru",
+    "can_be_list": false
+  },
+  "smtp_port": {
+    "val": "465",
+    "can_be_list": false
+  },
+  "smtp_from": {
+    "val": "belberry_notifications@mail.ru",
+    "can_be_list": false
+  },
+  "smtp_password": {
+    "val": "7H6ws8p3V6nz1wEVuDxs",
+    "can_be_list": false
+  },
+  "cloudinary.cloud_name": {
+    "val": "belberry",
+    "can_be_list": false
+  },
+  "cloudinary.api_key": {
+    "val": "526945777686722",
+    "can_be_list": false
+  },
+  "cloudinary.api_secret": {
+    "val": "27WCCHvLrbMh_SI4vXbXLFhaTrk",
+    "can_be_list": false
+  }
 }

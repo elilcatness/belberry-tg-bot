@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, ParseMode
 from telegram.ext import CallbackContext
 
-from constants import IMG_FILE_SIZE_LIMIT
+from data.constants import IMG_FILE_SIZE_LIMIT
 from data.db import db_session
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
