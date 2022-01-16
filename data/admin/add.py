@@ -6,12 +6,13 @@ from data.db import db_session
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
 from data.general import start
-from data.utils import delete_last_message, upload_img, process_view, terminate_jobs
+from data.utils import delete_last_message, upload_img, process_view, terminate_jobs, clear_temp_vars
 from data.view import ServiceViewPublic, SpecialistViewPublic
 
 
 @delete_last_message
 def add_menu(_, context: CallbackContext):
+    clear_temp_vars(context)
     context.user_data['last_block'] = 'add'
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Специалист', callback_data='add_specialists')],
                                    [InlineKeyboardButton('Услуга', callback_data='add_services')],
@@ -70,14 +71,14 @@ class SpecialistAddition:
             context.user_data['specialist_addition']['description'] = update.message.text.strip()
         context.user_data['selected_ids'] = []
         context.user_data['last_block'] = 'SpecialistAddition'
-        context.user_data['action_btn_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
-        return ServiceViewPublic.show_all(
-            update, context, is_sub_already=True,
-            prefix=(f'Выберите услугу для специалиста <b>'
-                    f'{context.user_data["specialist_addition"]["speciality"]} '
-                    f'{context.user_data["specialist_addition"]["full_name"]}</b>\n\n'
-                    f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n'),
-            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')]])
+        context.user_data['action_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
+        context.user_data['found_prefix'] = (
+            f'Выберите услуги для специалиста <b>'
+            f'{context.user_data["specialist_addition"]["speciality"]} '
+            f'{context.user_data["specialist_addition"]["full_name"]}</b>\n\n'
+            f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n')
+        context.user_data['extra_buttons'] = [('Продолжить', 'next')]
+        return ServiceViewPublic.show_all(update, context, is_sub_already=True)
 
     @staticmethod
     def handle_service_selection(_, context: CallbackContext):
@@ -89,13 +90,12 @@ class SpecialistAddition:
             context.user_data['selected_ids'] = context.user_data['selected_ids'][:idx] + end
         else:
             context.user_data['selected_ids'].append(service_id)
-        return ServiceViewPublic.show_all(
-            _, context, is_sub_already=True,
-            prefix=(f'Выберите услугу для специалиста <b>'
-                    f'{context.user_data["specialist_addition"]["speciality"]} '
-                    f'{context.user_data["specialist_addition"]["full_name"]}</b>\n\n'
-                    f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n'),
-            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')]])
+        context.user_data['found_prefix'] = (
+            f'Выберите услуги для специалиста <b>'
+            f'{context.user_data["specialist_addition"]["speciality"]} '
+            f'{context.user_data["specialist_addition"]["full_name"]}</b>\n\n'
+            f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n')
+        return ServiceViewPublic.show_all(_, context, is_sub_already=True)
 
     @staticmethod
     @delete_last_message
@@ -128,10 +128,7 @@ class SpecialistAddition:
                 spec.services.append(service)
                 session.add(spec)
                 session.commit()
-        if context.user_data.get('selected_ids'):
-            context.user_data.pop('selected_ids')
-        if context.user_data.get('action_btn_text'):
-            context.user_data.pop('action_btn_text')
+        clear_temp_vars(context)
         context.bot.send_message(context.user_data['id'],
                                  f'Специалист <b>{full_name}</b> был успешно добавлен',
                                  parse_mode=ParseMode.HTML)

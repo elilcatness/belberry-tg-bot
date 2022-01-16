@@ -6,6 +6,10 @@ from data.utils import get_config, delete_last_message
 
 @delete_last_message
 def info_menu(_, context: CallbackContext):
+    if context.user_data.get('specialist_id'):
+        context.user_data.pop('specialist_id')
+    if context.user_data.get('service_id'):
+        context.user_data.pop('service_id')
     cfg = get_config()
     context.user_data['last_block'] = 'info'
     markup = InlineKeyboardMarkup(
@@ -31,22 +35,21 @@ def about(_, context: CallbackContext):
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton('Проконсультироваться по телефону', callback_data='about.consult')],
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
-    phones = cfg.get('Номер телефона', {}).get('val', 'Не указан')
-    if isinstance(phones, list) and len(phones) > 1:
-        phone_key = 'Наши номера телефонов'
-        phones = '\n' + '\n'.join([f'• {ph}' for ph in phones])
-    else:
-        phone_key = 'Наш номер телефона'
-    e_mails = cfg.get('email', {}).get('val', 'Не указан')
-    if isinstance(e_mails, list) and len(e_mails) > 1:
-        e_mail_key = 'Наши E-mail'
-        e_mails = '\n' + '\n'.join([f'• {e}' for e in e_mails])
-    else:
-        e_mail_key = 'Наш E-mail'
+    # phones = cfg.get('Номер телефона', {}).get('val', 'Не указан')
+    # if isinstance(phones, list) and len(phones) > 1:
+    #     phone_key = 'Наши номера телефонов'
+    #     phones = '\n' + '\n'.join([f'• {ph}' for ph in phones])
+    # else:
+    #     phone_key = 'Наш номер телефона'
+    # e_mails = cfg.get('email', {}).get('val', 'Не указан')
+    # if isinstance(e_mails, list) and len(e_mails) > 1:
+    #     e_mail_key = 'Наши E-mail'
+    #     e_mails = '\n' + '\n'.join([f'• {e}' for e in e_mails])
+    # else:
+    #     e_mail_key = 'Наш E-mail'
     return (context.bot.send_message(
-        context.user_data['id'], f'{cfg.get("Описание клиники", {}).get("val", "")}'
-                                 f'\n\n<b>{phone_key}:</b> {phones}'
-                                 f'\n\n<b>{e_mail_key}:</b> {e_mails}',
+        context.user_data['id'],
+        cfg.get("Описание клиники", {}).get("val", "На данный момент описание клиники не указано"),
         reply_markup=markup, disable_web_page_preview=True, parse_mode=ParseMode.HTML), 'about_menu')
 
 

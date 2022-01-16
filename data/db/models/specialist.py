@@ -14,6 +14,8 @@ class Specialist(SqlAlchemyBase):
 
     serialize_fields = ('id', 'full_name', 'speciality', 'description', 'photo')
     verbose_names = {'full_name': 'ФИО', 'speciality': 'Специальность', 'description': 'Информация'}
+    verbose_names_edit = {'full_name': 'ФИО', 'speciality': 'Специальность', 'description': 'Информация',
+                          'photo': 'Фотография', 'services': 'Услуги'}
 
     id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
     full_name = Column(String)

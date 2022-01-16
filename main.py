@@ -8,6 +8,7 @@ from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
 
 from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
+from data.admin.edit import SpecialistEdit, edit_menu, ServiceEdit
 from data.admin.panel import show_data, reset_data, ask_resetting_data, request_changing_data, change_data
 from data.consult import Consult
 from data.db import db_session
@@ -43,7 +44,8 @@ def main():
                          CallbackQueryHandler(say_goodbye, pattern='another_time'),
                          CallbackQueryHandler(show_data, pattern='data'),
                          CallbackQueryHandler(ask_resetting_data, pattern='ask'),
-                         CallbackQueryHandler(add_menu, pattern='add_menu')],
+                         CallbackQueryHandler(add_menu, pattern='add_menu'),
+                         CallbackQueryHandler(edit_menu, pattern='edit_menu')],
                 'admin.data_resetting': [CallbackQueryHandler(reset_data, pattern='change_yes'),
                                          CallbackQueryHandler(start, pattern='change_no')],
                 'admin.data_requesting': [CallbackQueryHandler(start, pattern='menu'),
@@ -96,6 +98,59 @@ def main():
                     MessageHandler(Filters.photo | Filters.document, ServiceAddition.finish),
                     CallbackQueryHandler(ServiceAddition.finish, pattern='skip_photo'),
                     CallbackQueryHandler(ServiceAddition.ask_specialists, pattern='back')],
+                'edit_menu': [CallbackQueryHandler(SpecialistEdit.show_all, pattern='edit_specialists'),
+                              CallbackQueryHandler(ServiceEdit.show_all, pattern='edit_services'),
+                              CallbackQueryHandler(start, pattern='back')],
+                'edit.services.show_all': [
+                    CallbackQueryHandler(ServiceEdit.edit_menu, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(edit_menu, pattern='back')],
+                'edit.services.specialists.show_all': [
+                    CallbackQueryHandler(ServiceEdit.handle_specialist_selection, pattern='[0-9]+'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
+                    CallbackQueryHandler(ServiceEdit.save_specialists, pattern='next'),
+                    CallbackQueryHandler(ServiceEdit.edit_menu, pattern='back')
+                ],
+                'edit.services.edit_menu': [
+                    CallbackQueryHandler(ServiceEdit.show_all, pattern='back'),
+                    CallbackQueryHandler(ServiceEdit.show_specialists, pattern='specialists'),
+                    CallbackQueryHandler(ServiceEdit.ask_new_value, pattern='.*')
+                ],
+                'edit.services.ask_new_value': [
+                    MessageHandler(Filters.text | Filters.photo, ServiceEdit.set_new_value),
+                    CallbackQueryHandler(ServiceEdit.edit_menu, pattern='back')
+                ],
+                'edit.specialists.show_all': [
+                    CallbackQueryHandler(SpecialistEdit.edit_menu, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
+                    CallbackQueryHandler(edit_menu, pattern='back')],
+                'edit.specialists.services.show_all': [
+                    CallbackQueryHandler(SpecialistEdit.handle_service_selection, pattern='[0-9]+'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(SpecialistEdit.save_services, pattern='next'),
+                    CallbackQueryHandler(SpecialistEdit.edit_menu, pattern='back')
+                ],
+                'edit.specialists.edit_menu': [
+                    CallbackQueryHandler(SpecialistEdit.show_all, pattern='back'),
+                    CallbackQueryHandler(SpecialistEdit.show_services, pattern='services'),
+                    CallbackQueryHandler(SpecialistEdit.ask_new_value, pattern='.*')
+                ],
+                'edit.specialists.ask_new_value': [
+                    MessageHandler(Filters.text | Filters.photo, SpecialistEdit.set_new_value),
+                    CallbackQueryHandler(SpecialistEdit.edit_menu, pattern='back')
+                ],
                 'ask_for_help': [CallbackQueryHandler(help_menu, pattern='yes'),
                                  CallbackQueryHandler(info_menu, pattern='no'),
                                  CallbackQueryHandler(start, pattern='back')],
