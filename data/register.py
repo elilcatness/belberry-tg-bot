@@ -22,7 +22,8 @@ class Register:
                           'info'),
         'info.services.specialists': ('from data.view import ServiceViewPublic',
                                       'ServiceViewPublic.show_all',
-                                      'info')
+                                      'info'),
+        'help': ('from data.help import help_menu', 'help_menu', 'help')
     }
 
     @staticmethod

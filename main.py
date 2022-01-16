@@ -15,7 +15,7 @@ from data.consult import Consult
 from data.db import db_session
 from data.db.models.state import State
 from data.general import ask_for_help_menu, later, start
-from data.help import help_menu
+from data.help import help_menu, ask_review, greet_for_review, show_contacts
 from data.info import info_menu, show_address, show_socials, about, choose_route_engine
 from data.register import Register
 from data.utils import get_config
@@ -252,7 +252,21 @@ def main():
                 'address_menu': [CallbackQueryHandler(choose_route_engine, pattern='route'),
                                  CallbackQueryHandler(info_menu, pattern='back')],
                 'route_menu': [CallbackQueryHandler(show_address, pattern='back')],
-                'socials_menu': [CallbackQueryHandler(info_menu, pattern='back')]},
+                'socials_menu': [CallbackQueryHandler(info_menu, pattern='back')],
+                'help_menu': [CallbackQueryHandler(Register.register_name, pattern='register'),
+                              CallbackQueryHandler(ask_review, pattern='send_review'),
+                              CallbackQueryHandler(show_contacts, pattern='contacts'),
+                              CallbackQueryHandler(ask_for_help_menu, pattern='back')],
+                'help.ask_review': [CallbackQueryHandler(greet_for_review, pattern='review_sent'),
+                                    CallbackQueryHandler(help_menu, pattern='back')],
+                'help.contacts': [CallbackQueryHandler(help_menu, pattern='back')],
+                'help.register_name': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
+                    MessageHandler(Filters.text('Вернуться назад'), help_menu)],
+                'help.register_phone': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)],
+                },
         # 'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
         #               CallbackQueryHandler(ask_phone, pattern='ask_phone'),
         #               CallbackQueryHandler(show_contacts, pattern='contacts'),
