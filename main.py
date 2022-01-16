@@ -17,7 +17,7 @@ from data.help import help_menu
 from data.info import info_menu, show_address, show_socials, about, choose_route_engine
 from data.register import Register
 from data.utils import get_config
-from data.view import SpecialistViewPublic
+from data.view import SpecialistViewPublic, ServiceViewPublic
 
 
 def clear_keyboard(_, context):
@@ -82,12 +82,14 @@ def main():
                                  CallbackQueryHandler(info_menu, pattern='no'),
                                  CallbackQueryHandler(start, pattern='back')],
                 'info_menu': [CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='specialists'),
+                              CallbackQueryHandler(ServiceViewPublic.show_all, pattern='services'),
                               CallbackQueryHandler(about, pattern='about'),
                               CallbackQueryHandler(show_address, pattern='address'),
                               CallbackQueryHandler(show_socials, pattern='socials'),
                               CallbackQueryHandler(ask_for_help_menu, pattern='back')],
                 'info.specialists.show_all': [
-                    CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]* register'),
+                    CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+ register'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_services, pattern='[0-9]+'),
                     CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
                     CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
@@ -97,6 +99,35 @@ def main():
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
                     MessageHandler(Filters.text('Вернуться назад'), SpecialistViewPublic.show_all)],
                 'info.specialists.register_phone': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)
+                ],
+                'info.specialists.services.show_all': [
+                    CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]* register'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='back')
+                ],
+                'info.specialists.services.register_name': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
+                    MessageHandler(Filters.text('Вернуться назад'), ServiceViewPublic.show_all)],
+                'info.specialists.services.register_phone': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)
+                ],
+                'info.services.show_all': [
+                    CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]* register'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(info_menu, pattern='back')],
+                'info.services.register_name': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
+                    MessageHandler(Filters.text('Вернуться назад'), ServiceViewPublic.show_all)],
+                'info.services.register_phone': [
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
                     MessageHandler(Filters.text('Вернуться назад'), Register.register_name)
                 ],

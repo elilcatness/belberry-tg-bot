@@ -12,7 +12,11 @@ from data.utils import get_config, delete_last_message
 class Register:
     return_functions = {
         'info.specialists': ('from data.view import SpecialistViewPublic',
-                             'SpecialistViewPublic.show_all')
+                             'SpecialistViewPublic.show_all'),
+        'info.specialists.services': ('from data.view import SpecialistViewPublic',
+                                      'SpecialistViewPublic.show_all'),
+        'info.services': ('from data.view import ServiceViewPublic',
+                          'ServiceViewPublic.show_all'),
     }
 
     @staticmethod

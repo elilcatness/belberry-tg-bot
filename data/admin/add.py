@@ -53,7 +53,7 @@ class SpecialistAddition:
     @delete_last_message
     def ask_description(update: Update, context: CallbackContext):
         if update.message and update.message.text:
-            context.user_data['specialist_addition']['speciality'] = update.message.text.strip().capitalize()
+            context.user_data['specialist_addition']['speciality'] = update.message.text.strip().lower()
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton('Пропустить поле «Описание»', callback_data='skip_description')],
              [InlineKeyboardButton('Вернуться назад', callback_data='back')]])

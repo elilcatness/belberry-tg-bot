@@ -146,7 +146,8 @@ def make_agree_with_number(n: int, verbose_names: list[str]):
 
 def build_pagination(context: CallbackContext, array: list[dict],
                      pag_step: int, current_page: int, verbose_names: list[str],
-                     sub_category_verbose_name: str, sub_category_name: str):
+                     sub_category_verbose_name: str, is_sub_already=False,
+                     found_phrases: list[str] = None):
     array_length = len(array)
     verbose_name = make_agree_with_number(array_length, verbose_names)
     pages_count = (
@@ -156,17 +157,18 @@ def build_pagination(context: CallbackContext, array: list[dict],
         current_page = pages_count
     start = (current_page - 1) * pag_step
     end = current_page * pag_step if current_page * pag_step <= array_length else array_length
-    view_phrase = make_agree_with_number(array_length, ['Найден', 'Найдено', 'Найдено'])
+    found_phrase = make_agree_with_number(array_length, ['Найден', 'Найдено', 'Найдено'] if not found_phrases
+                                          else found_phrases)
     msg = context.bot.send_message(context.user_data['id'],
-                                   f'{view_phrase} <b>{array_length}</b> {verbose_name}',
+                                   f'{found_phrase} <b>{array_length}</b> {verbose_name}'
+                                   f'{context.user_data.get("found_prefix", "")}',
                                    parse_mode=ParseMode.HTML)
     context.user_data['messages_to_delete'] = context.user_data.get(
         'messages_to_delete', []) + [msg.message_id]
     for d in array[start:end]:
         d_id = d.pop('id')
-        buttons = [[InlineKeyboardButton(sub_category_verbose_name,
-                                         callback_data=f'{d_id} {sub_category_verbose_name}')]]
-        if sub_category_name == 'services':
+        buttons = [[InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')]]
+        if not is_sub_already:
             buttons.append([InlineKeyboardButton('Записаться', callback_data=f'{d_id} register')])
         markup = InlineKeyboardMarkup(buttons)
         try:
