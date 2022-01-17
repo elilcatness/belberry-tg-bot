@@ -5,7 +5,7 @@ from data.db import db_session
 from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
-from data.utils import delete_last_message, upload_img, clear_temp_vars
+from data.utils import delete_last_message, upload_img, clear_temp_vars, delete_img
 from data.view import SpecialistViewPublic, ServiceViewPublic, PromotionViewPublic
 
 
@@ -90,6 +90,7 @@ class SpecialistEdit:
             elif key_to_change == 'speciality':
                 spec.speciality = update.message.text.strip().lower()
             elif key_to_change == 'photo':
+                prev_photo = spec.photo
                 stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
                           else update.message.document.get_file().download_as_bytearray())
                 try:
@@ -98,6 +99,8 @@ class SpecialistEdit:
                     context.bot.send_message(context.user_data['id'],
                                              f'Выпало следующее исключение: {str(e)}')
                     return SpecialistEdit.ask_new_value(update, context)
+                if prev_photo:
+                    delete_img(prev_photo)
             else:
                 setattr(spec, key_to_change, update.message.text.strip())
             session.add(spec)
@@ -220,6 +223,7 @@ class ServiceEdit:
                     return ServiceEdit.ask_new_value(update, context)
                 service.name = name
             elif key_to_change == 'photo':
+                prev_photo = service.photo
                 stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
                           else update.message.document.get_file().download_as_bytearray())
                 try:
@@ -228,6 +232,8 @@ class ServiceEdit:
                     context.bot.send_message(context.user_data['id'],
                                              f'Выпало следующее исключение: {str(e)}')
                     return ServiceEdit.ask_new_value(update, context)
+                if prev_photo:
+                    delete_img(prev_photo)
             else:
                 setattr(service, key_to_change, update.message.text.strip())
             session.add(service)
@@ -347,6 +353,7 @@ class PromotionEdit:
                     return PromotionEdit.ask_new_value(update, context)
                 promotion.name = name
             elif key_to_change == 'photo':
+                prev_photo = promotion.photo
                 stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
                           else update.message.document.get_file().download_as_bytearray())
                 try:
@@ -355,6 +362,8 @@ class PromotionEdit:
                     context.bot.send_message(context.user_data['id'],
                                              f'Выпало следующее исключение: {str(e)}')
                     return PromotionEdit.ask_new_value(update, context)
+                if prev_photo:
+                    delete_img(prev_photo)
             else:
                 setattr(promotion, key_to_change, update.message.text.strip())
             session.add(promotion)
