@@ -35,7 +35,6 @@ def request_changing_data(_, context):
         text = (f'На что вы хотите заменить <b>{context.match.string}</b>?\n'
                 f'\n<b>Текущее значение:</b> {val}'
                 f'\n<b>Может ли быть списком:</b> Нет')
-    print(text)
     return context.bot.send_message(
         context.user_data['id'], text, reply_markup=markup, parse_mode=ParseMode.HTML,
         disable_web_page_preview=True), 'admin.data'
@@ -69,7 +68,7 @@ def ask_resetting_data(_, context):
 
 @delete_last_message
 def reset_data(update, context):
-    if update.message.text == 'Да':
+    if context.match and context.match.string == 'change_yes':
         with open(os.path.join('data', 'config.json'), encoding='utf-8') as f:
             cfg = get_config()
             admins = cfg['admins']
