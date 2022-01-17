@@ -183,7 +183,7 @@ class PromotionViewPublic:
         context.user_data['promo_pages_count'] = build_pagination(
             context, promotions, PAGINATION_STEP, context.user_data['promo_pagination'],
             ('акция', 'акции', 'акций'), 'Услуги',
-            context.user_data.get('is_sub_already', True),
+            context.user_data.get('promotions.is_sub_already', True),
             found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.promotions.show_all'
                 if 'promotions' not in context.user_data['last_block']
