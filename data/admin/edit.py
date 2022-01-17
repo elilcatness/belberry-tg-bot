@@ -215,7 +215,6 @@ class ServiceEdit:
                 reply_markup=markup, parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True), 'edit.services.ask_new_value'
 
-
     @staticmethod
     @delete_last_message
     def set_new_value(update: Update, context: CallbackContext):

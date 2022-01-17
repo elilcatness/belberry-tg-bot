@@ -157,6 +157,7 @@ def build_pagination(context: CallbackContext, array: list,
             action_text = action_text['active' if d_id in context.user_data['selected_ids'] else 'inactive']
         elif not action_text:
             action_text = 'Записаться'
+        if not is_sub_already:
             buttons.append([InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')])
         buttons.append([InlineKeyboardButton(action_text, callback_data=f'{d_id} action')])
         markup = InlineKeyboardMarkup(buttons)

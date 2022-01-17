@@ -13,6 +13,8 @@ class SpecialistViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=False, _filter=True):
+        if not is_sub_already:
+            context.user_data['specialists.is_sub_already'] = False
         if ('specialists' in context.user_data.get('last_block', '')
                 and not context.user_data.get('last_block', '').endswith('specialists')):
             context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.specialists'
@@ -36,7 +38,8 @@ class SpecialistViewPublic:
             context.user_data['spec_pagination'] = 1
         context.user_data['spec_pages_count'] = build_pagination(
             context, specialists, PAGINATION_STEP, context.user_data['spec_pagination'],
-            ('специалист', 'специалиста', 'специалистов'), 'Услуги', is_sub_already)
+            ('специалист', 'специалиста', 'специалистов'), 'Услуги',
+            context.user_data.get('specialists.is_sub_already', True))
         terminate_jobs(context, job_name)
         return (f'{context.user_data["last_block"]}.specialists.show_all'
                 if 'specialists' not in context.user_data['last_block']
@@ -45,12 +48,14 @@ class SpecialistViewPublic:
     @staticmethod
     def set_next_page(_, context):
         context.user_data['spec_pagination'] += 1
-        return SpecialistViewPublic.show_all(_, context)
+        return SpecialistViewPublic.show_all(
+            _, context, is_sub_already=context.user_data.get('specialists.is_sub_already', False))
 
     @staticmethod
     def set_previous_page(_, context):
         context.user_data['spec_pagination'] -= 1
-        return SpecialistViewPublic.show_all(_, context)
+        return SpecialistViewPublic.show_all(
+            _, context, is_sub_already=context.user_data.get('specialists.is_sub_already', False))
 
     @staticmethod
     def set_page(update, context):
@@ -59,7 +64,8 @@ class SpecialistViewPublic:
             update.message.reply_text('Введён неверный номер страницы')
         else:
             context.user_data['spec_pagination'] = n
-        return SpecialistViewPublic.show_all(update, context)
+        return SpecialistViewPublic.show_all(
+            update, context, is_sub_already=context.user_data.get('specialists.is_sub_already', False))
 
     @staticmethod
     def register(update, context: CallbackContext):
@@ -73,6 +79,7 @@ class SpecialistViewPublic:
         context.user_data['specialist_id'] = int(context.match.string)
         if 'specialists' not in context.user_data['last_block']:
             context.user_data['last_block'] = f'{context.user_data["last_block"]}.specialists'
+        context.user_data['services.is_sub_already'] = True
         return ServiceViewPublic.show_all(_, context, is_sub_already=True)
 
 
@@ -83,6 +90,8 @@ class ServiceViewPublic:
         if ('services' in context.user_data.get('last_block', '')
                 and not context.user_data.get('last_block', '').endswith('services')):
             context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.services'
+        if not is_sub_already:
+            context.user_data['services.is_sub_already'] = False
         if context.user_data.get('service_id'):
             context.user_data.pop('service_id')
         if not is_sub_already and context.user_data.get('found_suffix'):
@@ -104,7 +113,8 @@ class ServiceViewPublic:
             context.user_data['service_pagination'] = 1
         context.user_data['service_pages_count'] = build_pagination(
             context, services, PAGINATION_STEP, context.user_data['service_pagination'],
-            ('услуга', 'услуги', 'услуг'), 'Специалисты', is_sub_already,
+            ('услуга', 'услуги', 'услуг'), 'Специалисты',
+            context.user_data.get('services.is_sub_already', True),
             found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.services.show_all'
                 if 'services' not in context.user_data['last_block']
@@ -113,7 +123,8 @@ class ServiceViewPublic:
     @staticmethod
     def set_next_page(_, context):
         context.user_data['service_pagination'] += 1
-        return ServiceViewPublic.show_all(_, context)
+        return ServiceViewPublic.show_all(
+            _, context, is_sub_already=context.user_data.get('services.is_sub_already', False))
 
     @staticmethod
     def set_previous_page(_, context):
@@ -127,7 +138,8 @@ class ServiceViewPublic:
             update.message.reply_text('Введён неверный номер страницы')
         else:
             context.user_data['service_pagination'] = n
-        return ServiceViewPublic.show_all(update, context)
+        return ServiceViewPublic.show_all(
+            update, context, is_sub_already=context.user_data.get('services.is_sub_already', False))
 
     @staticmethod
     def register(update, context: CallbackContext):
@@ -141,6 +153,7 @@ class ServiceViewPublic:
         context.user_data['service_id'] = int(context.match.string)
         if 'services' not in context.user_data['last_block']:
             context.user_data['last_block'] = f'{context.user_data["last_block"]}.services'
+        context.user_data['specialists.is_sub_already'] = True
         return SpecialistViewPublic.show_all(_, context, is_sub_already=True)
 
 
@@ -151,6 +164,8 @@ class PromotionViewPublic:
         if ('promotions' in context.user_data.get('last_block', '')
                 and not context.user_data.get('last_block', '').endswith('promotions')):
             context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.promotions'
+        if not is_sub_already:
+            context.user_data['promotions.is_sub_already'] = False
         if context.user_data.get('promotion_id'):
             context.user_data.pop('promotion_id')
         if not is_sub_already and context.user_data.get('found_suffix'):
@@ -167,7 +182,8 @@ class PromotionViewPublic:
             context.user_data['promo_pagination'] = 1
         context.user_data['promo_pages_count'] = build_pagination(
             context, promotions, PAGINATION_STEP, context.user_data['promo_pagination'],
-            ('акция', 'акции', 'акций'), 'Услуги', is_sub_already,
+            ('акция', 'акции', 'акций'), 'Услуги',
+            context.user_data.get('is_sub_already', True),
             found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.promotions.show_all'
                 if 'promotions' not in context.user_data['last_block']
@@ -176,12 +192,14 @@ class PromotionViewPublic:
     @staticmethod
     def set_next_page(_, context):
         context.user_data['promo_pagination'] += 1
-        return PromotionViewPublic.show_all(_, context)
+        return PromotionViewPublic.show_all(
+            _, context, is_sub_already=context.user_data.get('promotions.is_sub_already', False))
 
     @staticmethod
     def set_previous_page(_, context):
         context.user_data['promo_pagination'] -= 1
-        return PromotionViewPublic.show_all(_, context)
+        return PromotionViewPublic.show_all(
+            _, context, is_sub_already=context.user_data.get('promotions.is_sub_already', False))
 
     @staticmethod
     def set_page(update, context):
@@ -204,4 +222,5 @@ class PromotionViewPublic:
         context.user_data['promotion_id'] = int(context.match.string)
         if 'promotions' not in context.user_data['last_block']:
             context.user_data['last_block'] = f'{context.user_data["last_block"]}.promotions'
+        context.user_data['services.is_sub_already'] = True
         return ServiceViewPublic.show_all(_, context, is_sub_already=True)
