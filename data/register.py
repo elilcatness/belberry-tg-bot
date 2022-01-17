@@ -110,7 +110,7 @@ class Register:
                 elif _type == 'Service':
                     prefix = f'на услугу <b>{entity.name}</b> '
                 elif _type == 'Promotion':
-                    prefix = f'на акцию <b>{entity.name}</b>'
+                    prefix = f'на акцию <b>{entity.name}</b> '
         else:
             prefix = ''
         if not send_mail(get_config().get('email', {}).get('val'), 'Заявка на запись',
