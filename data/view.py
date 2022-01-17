@@ -142,6 +142,7 @@ class PromotionViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already: bool = False, _filter: bool = True):
+        print(f'{context.user_data["last_block"]=}')
         if context.user_data.get('promotion_id'):
             context.user_data.pop('promotion_id')
         if not is_sub_already and context.user_data.get('found_suffix'):
