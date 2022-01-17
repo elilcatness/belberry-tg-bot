@@ -32,6 +32,8 @@ class SpecialistEdit:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=True):
+        if is_sub_already:
+            context.user_data['specialists.is_sub_already'] = True
         context.user_data['action_text'] = 'Редактировать'
         SpecialistViewPublic.show_all(_, context, is_sub_already=is_sub_already)
         return 'edit.specialists.show_all'
@@ -170,6 +172,8 @@ class ServiceEdit:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=True):
+        if is_sub_already:
+            context.user_data['services.is_sub_already'] = True
         context.user_data['action_text'] = 'Редактировать'
         ServiceViewPublic.show_all(_, context, is_sub_already=is_sub_already)
         return 'edit.services.show_all'
@@ -303,6 +307,8 @@ class PromotionEdit:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=True):
+        if is_sub_already:
+            context.user_data['promotions.is_sub_already'] = True
         context.user_data['action_text'] = 'Редактировать'
         PromotionViewPublic.show_all(_, context, is_sub_already=is_sub_already)
         return 'edit.promotions.show_all'

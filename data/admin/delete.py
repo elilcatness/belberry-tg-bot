@@ -31,6 +31,8 @@ class SpecialistDelete:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=True):
+        if is_sub_already:
+            context.user_data['specialists.is_sub_already'] = True
         context.user_data['action_text'] = 'Удалить'
         SpecialistViewPublic.show_all(_, context, is_sub_already=is_sub_already)
         return 'delete.specialists.show_all'
@@ -70,6 +72,8 @@ class ServiceDelete:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=True):
+        if is_sub_already:
+            context.user_data['services.is_sub_already'] = True
         context.user_data['action_text'] = 'Удалить'
         ServiceViewPublic.show_all(_, context, is_sub_already=is_sub_already)
         return 'delete.services.show_all'
@@ -108,6 +112,8 @@ class PromotionDelete:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=True):
+        if is_sub_already:
+            context.user_data['promotions.is_sub_already'] = True
         context.user_data['action_text'] = 'Удалить'
         PromotionViewPublic.show_all(_, context, is_sub_already=is_sub_already)
         return 'delete.promotions.show_all'
