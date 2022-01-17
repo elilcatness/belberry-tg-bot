@@ -2,6 +2,7 @@ import json
 import os
 
 import cloudinary
+from dotenv import load_dotenv
 from telegram import ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
@@ -393,7 +394,7 @@ def main():
                     CallbackQueryHandler(PromotionViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(PromotionViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), PromotionViewPublic.set_page),
-                    CallbackQueryHandler(info_menu, pattern='back')],
+                    CallbackQueryHandler(help_menu, pattern='back')],
                 'help.promotions.register_name': [
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
                     MessageHandler(Filters.text('Вернуться назад'), PromotionViewPublic.show_all)],
@@ -408,28 +409,13 @@ def main():
                     CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
-                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='back')],
+                    CallbackQueryHandler(help_menu, pattern='back')],
                 'help.promotions.services.register_name': [
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
                     MessageHandler(Filters.text('Вернуться назад'), ServiceViewPublic.show_all)],
                 'help.promotions.services.register_phone': [
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
-                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)],
-                'help.promotions.services.specialists.show_all': [
-                    CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+ action'),
-                    CallbackQueryHandler(SpecialistViewPublic.show_services, pattern='[0-9]+'),
-                    CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
-                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
-                    CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
-                    MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
-                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='back')],
-                'help.promotions.services.specialists.register_name': [
-                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
-                    MessageHandler(Filters.text('Вернуться назад'), SpecialistViewPublic.show_all)],
-                'help.promotions.services.specialists.register_phone': [
-                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
-                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)]
-                },
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)]},
         fallbacks=[CommandHandler('start', start)])
     updater.dispatcher.add_handler(conv_handler)
     load_states(updater, conv_handler)
@@ -438,6 +424,7 @@ def main():
 
 
 if __name__ == '__main__':
+    load_dotenv()
     db_session.global_init(os.getenv('DATABASE_URL'))
     cfg = get_config()
     cloudinary.config(
