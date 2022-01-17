@@ -62,7 +62,7 @@
     "can_be_list": true
   },
   "smtp_host": {
-    "val": "smtp.mail.ru",
+    "val": "smtp.yandex.ru",
     "can_be_list": false
   },
   "smtp_port": {
@@ -70,11 +70,11 @@
     "can_be_list": false
   },
   "smtp_from": {
-    "val": "bb_notif@mail.ru",
+    "val": "bbnotifications@yandex.ru",
     "can_be_list": false
   },
   "smtp_password": {
-    "val": "LFfe5yrW1Ygn2aghmvXA",
+    "val": "mullahcprsoxdgcv",
     "can_be_list": false
   },
   "cloudinary.cloud_name": {
