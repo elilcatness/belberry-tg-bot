@@ -13,7 +13,8 @@ class Service(SqlAlchemyBase):
 
     serialize_fields = ('id', 'name', 'description', 'photo')
     verbose_names = {'name': 'Название', 'description': 'Описание'}
-    verbose_names_edit = {'name': 'Название', 'photo': 'Фотография', 'specialists': 'Специалисты'}
+    verbose_names_edit = {'name': 'Название', 'photo': 'Фотография', 'description': 'Описание',
+                          'specialists': 'Специалисты'}
 
     id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
     name = Column(String, unique=True)

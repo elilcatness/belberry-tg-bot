@@ -2,6 +2,7 @@ import json
 import os
 
 import cloudinary
+from dotenv import load_dotenv
 from telegram import ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
@@ -52,7 +53,8 @@ def main():
                 'admin.data_requesting': [CallbackQueryHandler(start, pattern='menu'),
                                           CallbackQueryHandler(request_changing_data, pattern='')],
                 'admin.data': [CallbackQueryHandler(show_data, pattern='data'),
-                               MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, change_data)],
+                               MessageHandler((~Filters.text('Вернуться назад')) & (Filters.text | Filters.photo),
+                                              change_data)],
                 'add_menu': [CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='add_specialists'),
                              CallbackQueryHandler(ServiceAddition.ask_name, pattern='add_services'),
                              CallbackQueryHandler(PromotionAddition.ask_name, pattern='add_promotions'),
@@ -408,7 +410,7 @@ def main():
                     CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
-                    CallbackQueryHandler(help_menu, pattern='back')],
+                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='back')],
                 'help.promotions.services.register_name': [
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
                     MessageHandler(Filters.text('Вернуться назад'), ServiceViewPublic.show_all)],
@@ -423,6 +425,7 @@ def main():
 
 
 if __name__ == '__main__':
+    load_dotenv()
     db_session.global_init(os.getenv('DATABASE_URL'))
     cfg = get_config()
     cloudinary.config(

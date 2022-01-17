@@ -1,4 +1,5 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode, Update
+from telegram.error import BadRequest
 from telegram.ext import CallbackContext
 
 from data.db import db_session
@@ -59,19 +60,23 @@ class SpecialistEdit:
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
             spec = session.query(Specialist).get(context.user_data['specialist_id'])
-            if context.user_data['key_to_change'] != 'photo' or not spec.photo:
-                return context.bot.send_message(
-                    context.user_data['id'],
-                    f'На что Вы хотите заменить '
-                    f'<b>{spec.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
-                    f'<b>Текущее значение: </b> {getattr(spec, context.user_data["key_to_change"])}',
-                    reply_markup=markup, parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True), 'edit.specialists.ask_new_value'
-            return (context.bot.send_photo(
-                context.user_data['id'], spec.photo,
+            if context.user_data['key_to_change'] == 'photo' and spec.photo:
+                try:
+                    return (context.bot.send_photo(
+                        context.user_data['id'], spec.photo,
+                        f'На что Вы хотите заменить '
+                        f'<b>{spec.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
+                        reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.specialists.ask_new_value')
+                except BadRequest:
+                    pass
+            return context.bot.send_message(
+                context.user_data['id'],
                 f'На что Вы хотите заменить '
-                f'<b>{spec.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
-                reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.specialists.ask_new_value')
+                f'<b>{spec.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
+                f'<b>Текущее значение: </b> {getattr(spec, context.user_data["key_to_change"])}',
+                reply_markup=markup, parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True), 'edit.specialists.ask_new_value'
+
 
     @staticmethod
     @delete_last_message
@@ -193,19 +198,23 @@ class ServiceEdit:
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
             service = session.query(Service).get(context.user_data['service_id'])
-            if context.user_data['key_to_change'] != 'photo' or not service.photo:
-                return context.bot.send_message(
-                    context.user_data['id'],
-                    f'На что Вы хотите заменить '
-                    f'<b>{service.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
-                    f'<b>Текущее значение: </b> {getattr(service, context.user_data["key_to_change"])}',
-                    reply_markup=markup, parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True), 'edit.services.ask_new_value'
-            return (context.bot.send_photo(
-                context.user_data['id'], service.photo,
+            if context.user_data['key_to_change'] == 'photo' and service.photo:
+                try:
+                    return (context.bot.send_photo(
+                        context.user_data['id'], service.photo,
+                        f'На что Вы хотите заменить '
+                        f'<b>{service.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
+                        reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.services.ask_new_value')
+                except BadRequest:
+                    pass
+            return context.bot.send_message(
+                context.user_data['id'],
                 f'На что Вы хотите заменить '
-                f'<b>{service.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
-                reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.services.ask_new_value')
+                f'<b>{service.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
+                f'<b>Текущее значение: </b> {getattr(service, context.user_data["key_to_change"])}',
+                reply_markup=markup, parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True), 'edit.services.ask_new_value'
+
 
     @staticmethod
     @delete_last_message
@@ -240,7 +249,7 @@ class ServiceEdit:
             session.commit()
             context.bot.send_message(
                 context.user_data['id'],
-                f'<b>Переменная {service.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
+                f'Переменная <b>{service.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
                 f'услуги <b>{service.name}</b> была успешно обновлена', parse_mode=ParseMode.HTML)
             return ServiceEdit.edit_menu(update, context)
 
@@ -323,19 +332,23 @@ class PromotionEdit:
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
             promotion = session.query(Promotion).get(context.user_data['promotion_id'])
-            if context.user_data['key_to_change'] != 'photo' or not promotion.photo:
-                return context.bot.send_message(
-                    context.user_data['id'],
-                    f'На что Вы хотите заменить '
-                    f'<b>{promotion.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
-                    f'<b>Текущее значение: </b> {getattr(promotion, context.user_data["key_to_change"])}',
-                    reply_markup=markup, parse_mode=ParseMode.HTML,
-                    disable_web_page_preview=True), 'edit.promotions.ask_new_value'
-            return (context.bot.send_photo(
-                context.user_data['id'], promotion.photo,
+            if context.user_data['key_to_change'] == 'photo' and promotion.photo:
+                try:
+                    return (context.bot.send_photo(
+                        context.user_data['id'], promotion.photo,
+                        f'На что Вы хотите заменить '
+                        f'<b>{promotion.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
+                        reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.promotions.ask_new_value')
+                except BadRequest:
+                    pass
+            return context.bot.send_message(
+                context.user_data['id'],
                 f'На что Вы хотите заменить '
-                f'<b>{promotion.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
-                reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.promotions.ask_new_value')
+                f'<b>{promotion.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
+                f'<b>Текущее значение: </b> {getattr(promotion, context.user_data["key_to_change"])}',
+                reply_markup=markup, parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True), 'edit.promotions.ask_new_value'
+
 
     @staticmethod
     @delete_last_message
@@ -370,7 +383,7 @@ class PromotionEdit:
             session.commit()
             context.bot.send_message(
                 context.user_data['id'],
-                f'<b>Переменная {promotion.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
+                f'Переменная <b>{promotion.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
                 f'акции <b>{promotion.name}</b> была успешно обновлена', parse_mode=ParseMode.HTML)
             return PromotionEdit.edit_menu(update, context)
 

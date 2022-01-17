@@ -1,4 +1,5 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
+from telegram.error import BadRequest
 from telegram.ext import CallbackContext
 
 from data.utils import get_config, delete_last_message
@@ -49,9 +50,12 @@ def show_address(_, context: CallbackContext):
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     text = f'<b>Наш адрес:</b> {cfg.get("Адрес клиники", {}).get("val", "Не указан")}'
     if cfg.get('Фото карты', {}).get('val'):
-        return (context.bot.send_photo(context.user_data['id'], cfg['Фото карты']['val'], text,
-                                       reply_markup=markup, parse_mode=ParseMode.HTML),
-                'address_menu')
+        try:
+            return (context.bot.send_photo(context.user_data['id'], cfg['Фото карты']['val'], text,
+                                           reply_markup=markup, parse_mode=ParseMode.HTML),
+                    'address_menu')
+        except BadRequest:
+            pass
     return context.bot.send_message(context.user_data['id'], text, reply_markup=markup,
                                     parse_mode=ParseMode.HTML), 'address_menu'
 

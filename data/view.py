@@ -13,6 +13,9 @@ class SpecialistViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=False, _filter=True):
+        if ('specialists' in context.user_data.get('last_block', '')
+                and not context.user_data.get('last_block', '').endswith('specialists')):
+            context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.specialists'
         job_name = f'process {context.user_data["id"]}'
         context.user_data['process.msg_text'] = 'Подождите. Данные загружаются'
         context.job_queue.run_repeating(process_view, 1, 0,
@@ -77,6 +80,9 @@ class ServiceViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already: bool = False, _filter: bool = True):
+        if ('services' in context.user_data.get('last_block', '')
+                and not context.user_data.get('last_block', '').endswith('services')):
+            context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.services'
         if context.user_data.get('service_id'):
             context.user_data.pop('service_id')
         if not is_sub_already and context.user_data.get('found_suffix'):
@@ -142,7 +148,9 @@ class PromotionViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already: bool = False, _filter: bool = True):
-        print(context.user_data['last_block'])
+        if ('promotions' in context.user_data.get('last_block', '')
+                and not context.user_data.get('last_block', '').endswith('promotions')):
+            context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.promotions'
         if context.user_data.get('promotion_id'):
             context.user_data.pop('promotion_id')
         if not is_sub_already and context.user_data.get('found_suffix'):
@@ -168,12 +176,12 @@ class PromotionViewPublic:
     @staticmethod
     def set_next_page(_, context):
         context.user_data['promo_pagination'] += 1
-        return ServiceViewPublic.show_all(_, context)
+        return PromotionViewPublic.show_all(_, context)
 
     @staticmethod
     def set_previous_page(_, context):
         context.user_data['promo_pagination'] -= 1
-        return ServiceViewPublic.show_all(_, context)
+        return PromotionViewPublic.show_all(_, context)
 
     @staticmethod
     def set_page(update, context):
@@ -182,7 +190,7 @@ class PromotionViewPublic:
             update.message.reply_text('Введён неверный номер страницы')
         else:
             context.user_data['promo_pagination'] = n
-        return ServiceViewPublic.show_all(update, context)
+        return PromotionViewPublic.show_all(update, context)
 
     @staticmethod
     def register(update, context: CallbackContext):

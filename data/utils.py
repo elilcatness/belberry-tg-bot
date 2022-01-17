@@ -166,10 +166,15 @@ def build_pagination(context: CallbackContext, array: list,
         except KeyError:
             photo = None
         text = '\n'.join([f'<b>{key}</b>: {val if val else "Не указано"}' for key, val in d.items()])
+        photo_sent = False
         if photo:
-            msg = context.bot.send_photo(context.user_data['id'], photo, text,
-                                         parse_mode=ParseMode.HTML, reply_markup=markup)
-        else:
+            try:
+                msg = context.bot.send_photo(context.user_data['id'], photo, text,
+                                             parse_mode=ParseMode.HTML, reply_markup=markup)
+                photo_sent = True
+            except BadRequest:
+                pass
+        if not photo_sent:
             msg = context.bot.send_message(context.user_data['id'], text,
                                            parse_mode=ParseMode.HTML, reply_markup=markup)
         context.user_data['messages_to_delete'].append(msg.message_id)

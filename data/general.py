@@ -1,4 +1,5 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram.error import BadRequest
 from telegram.ext import ConversationHandler, CallbackContext
 
 from data.info import info_menu
@@ -37,10 +38,13 @@ def start(update, context):
                         [InlineKeyboardButton('Редактировать сущность (admin)', callback_data='edit_menu')],
                         [InlineKeyboardButton('Удалить сущность (admin)', callback_data='delete_menu')]])
     if cfg.get("Фото клиники", {}).get('val'):
-        return (context.bot.send_photo(context.user_data['id'], cfg["Фото клиники"]['val'],
-                                       text % context.user_data['first_name'],
-                                       reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
-                'menu')
+        try:
+            return (context.bot.send_photo(context.user_data['id'], cfg["Фото клиники"]['val'],
+                                           text % context.user_data['first_name'],
+                                           reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
+                    'menu')
+        except BadRequest:
+            pass
     return (context.bot.send_message(context.user_data['id'], text % context.user_data['first_name'],
                                      reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
             'menu')
