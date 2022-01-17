@@ -75,5 +75,5 @@ def reset_data(update, context):
             data = json.loads(f.read())
             data['admins'] = admins
             save_config(data)
-            update.message.reply_text('Настройки были успешно сброшены')
+            context.bot.send_message(context.user_data['id'], 'Настройки были успешно сброшены')
     return start(update, context)
