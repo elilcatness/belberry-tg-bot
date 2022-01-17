@@ -33,7 +33,7 @@ def about(_, context: CallbackContext):
     context.user_data['last_block'] = 'about'
     cfg = get_config()
     markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton('Проконсультироваться по телефону', callback_data='about.consult')],
+        [[InlineKeyboardButton('Проконсультироваться по телефону', callback_data='consult')],
          [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     return (context.bot.send_message(
         context.user_data['id'],
