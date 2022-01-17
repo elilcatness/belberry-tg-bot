@@ -2,7 +2,6 @@ import json
 import os
 
 import cloudinary
-from dotenv import load_dotenv
 from telegram import ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
@@ -425,7 +424,6 @@ def main():
 
 
 if __name__ == '__main__':
-    load_dotenv()
     db_session.global_init(os.getenv('DATABASE_URL'))
     cfg = get_config()
     cloudinary.config(
