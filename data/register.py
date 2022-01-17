@@ -114,8 +114,8 @@ class Register:
         else:
             prefix = ''
         if not send_mail(get_config().get('email', {}).get('val'), 'Заявка на запись',
-                         f'Поступила заявка на запись {prefix}со следующими данными:<br><br> '
-                         '%s' % ('<br>'.join([f'<b>{key}</b>: {val}'
+                         'Поступила заявка на запись %sсо следующими данными:<br><br> '
+                         '%s' % (prefix, '<br>'.join([f'<b>{key}</b>: {val}'
                                               for key, val in context.user_data['register'].items()]))
                          + f'<div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
                            f'https://t.me/{context.bot.username}</i></div>'):
