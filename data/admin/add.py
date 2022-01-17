@@ -3,11 +3,12 @@ from telegram.ext import CallbackContext
 
 from data.constants import IMG_FILE_SIZE_LIMIT
 from data.db import db_session
+from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
 from data.general import start
 from data.utils import delete_last_message, upload_img, process_view, terminate_jobs, clear_temp_vars
-from data.view import ServiceViewPublic, SpecialistViewPublic
+from data.view import ServiceViewPublic, SpecialistViewPublic, PromotionViewPublic
 
 
 @delete_last_message
@@ -16,6 +17,7 @@ def add_menu(_, context: CallbackContext):
     context.user_data['last_block'] = 'add'
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Специалист', callback_data='add_specialists')],
                                    [InlineKeyboardButton('Услуга', callback_data='add_services')],
+                                   [InlineKeyboardButton('Акция', callback_data='add_promotions')],
                                    [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     return (context.bot.send_message(context.user_data['id'], 'Выберите сущность для добавления',
                                      reply_markup=markup), 'add_menu')
@@ -172,15 +174,14 @@ class ServiceAddition:
             context.user_data['service_addition']['description'] = update.message.text.strip()
         context.user_data['selected_ids'] = []
         context.user_data['last_block'] = 'ServiceAddition'
-        context.user_data['action_btn_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
-        return SpecialistViewPublic.show_all(
-            update, context, is_sub_already=True,
-            prefix=(f'Выберите специалистов, предоставляющих услугу <b>'
-                    f'{context.user_data["service_addition"]["name"]}</b>\n\n'
-                    f'<b>Выбрано специалистов:</b> {len(context.user_data["selected_ids"])}\n\n'),
-            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')],
-                           [InlineKeyboardButton('Пропустить поле «Специалисты»',
-                                                 callback_data='skip_specialists')]])
+        context.user_data['action_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
+        context.user_data['found_prefix'] = (
+            f'Выберите специалистов, предоставляющих услугу <b>'
+            f'{context.user_data["service_addition"]["name"]}</b>\n\n'
+            f'<b>Выбрано специалистов:</b> {len(context.user_data["selected_ids"])}\n\n')
+        context.user_data['extra_buttons'] = [('Продолжить', 'next'),
+                                              ('Пропустить поле «Специалисты»', 'skip_specialists')]
+        return SpecialistViewPublic.show_all(update, context, is_sub_already=True)
 
     @staticmethod
     def handle_specialist_selection(_, context: CallbackContext):
@@ -192,14 +193,13 @@ class ServiceAddition:
             context.user_data['selected_ids'] = context.user_data['selected_ids'][:idx] + end
         else:
             context.user_data['selected_ids'].append(spec_id)
-        return SpecialistViewPublic.show_all(
-            _, context, is_sub_already=True,
-            prefix=(f'Выберите специалистов, предоставляющих услугу <b>'
-                    f'{context.user_data["service_addition"]["name"]}</b>\n\n'
-                    f'<b>Выбрано специалистов:</b> {len(context.user_data["selected_ids"])}\n\n'),
-            extra_buttons=[[InlineKeyboardButton('Продолжить', callback_data='next')],
-                           [InlineKeyboardButton('Пропустить поле «Специалисты»',
-                                                 callback_data='skip_specialists')]])
+        context.user_data['found_prefix'] = (
+            f'Выберите специалистов, предоставляющих услугу <b>'
+            f'{context.user_data["service_addition"]["name"]}</b>\n\n'
+            f'<b>Выбрано специалистов:</b> {len(context.user_data["selected_ids"])}\n\n')
+        context.user_data['extra_buttons'] = [('Продолжить', 'next'),
+                                              ('Пропустить поле «Специалисты»', 'skip_specialists')]
+        return SpecialistViewPublic.show_all(_, context, is_sub_already=True)
 
     @staticmethod
     @delete_last_message
@@ -248,8 +248,126 @@ class ServiceAddition:
                 session.add(service)
                 session.commit()
         context.user_data['selected_ids'] = []
-        context.user_data['action_btn_text'] = None
+        context.user_data['action_text'] = None
         context.bot.send_message(context.user_data['id'],
                                  f'Услуга <b>{name}</b> была успешно добавлена',
+                                 parse_mode=ParseMode.HTML)
+        return add_menu(update, context)
+
+
+class PromotionAddition:
+    @staticmethod
+    @delete_last_message
+    def ask_name(_, context: CallbackContext):
+        context.user_data['promotion_addition'] = dict()
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+        return (context.bot.send_message(context.user_data['id'], 'Введите название акции',
+                                         reply_markup=markup),
+                'PromotionAddition.ask_name')
+
+    @staticmethod
+    @delete_last_message
+    def ask_description(update: Update, context: CallbackContext):
+        if update.message and update.message.text:
+            context.user_data['promotion_addition']['name'] = update.message.text.strip()
+        with db_session.create_session() as session:
+            for promo in session.query(Promotion).all():
+                if promo.name.lower() == context.user_data['promotion_addition']['name'].lower():
+                    context.bot.send_message(
+                        context.user_data['id'],
+                        f'Акция <b>{context.user_data["promotion_addition"]["name"]}</b> уже существует!',
+                        parse_mode=ParseMode.HTML)
+                    return PromotionAddition.ask_name(update, context)
+        markup = InlineKeyboardMarkup(
+            [[InlineKeyboardButton('Пропустить поле «Описание»', callback_data='skip_description')],
+             [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+        return (context.bot.send_message(context.user_data['id'], 'Введите описание акции',
+                                         reply_markup=markup),
+                'PromotionAddition.ask_description')
+
+    @staticmethod
+    @delete_last_message
+    def ask_services(update: Update, context: CallbackContext):
+        if update.message and update.message.text:
+            context.user_data['promotion_addition']['description'] = update.message.text.strip()
+        context.user_data['selected_ids'] = []
+        context.user_data['last_block'] = 'PromotionAddition'
+        context.user_data['action_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
+        context.user_data['found_prefix'] = (
+            f'Выберите услуги, на которые распространяется акция <b>'
+            f'{context.user_data["promotion_addition"]["name"]}</b>\n\n'
+            f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n')
+        context.user_data['extra_buttons'] = [('Продолжить', 'next'),
+                                              ('Пропустить поле «Услуги»', 'skip_services')]
+        return ServiceViewPublic.show_all(update, context, is_sub_already=True)
+
+    @staticmethod
+    def handle_service_selection(_, context: CallbackContext):
+        service_id = int(context.match.string.split()[0])
+        if service_id in context.user_data['selected_ids']:
+            idx = context.user_data['selected_ids'].index(service_id)
+            end = (context.user_data['selected_ids'][idx + 1:]
+                   if idx + 1 < len(context.user_data['selected_ids']) else [])
+            context.user_data['selected_ids'] = context.user_data['selected_ids'][:idx] + end
+        else:
+            context.user_data['selected_ids'].append(service_id)
+        context.user_data['found_prefix'] = (
+            f'Выберите услуги, на которые распространяется акция <b>'
+            f'{context.user_data["promotion_addition"]["name"]}</b>\n\n'
+            f'<b>Выбрано услуг:</b> {len(context.user_data["selected_ids"])}\n\n')
+        context.user_data['extra_buttons'] = [('Продолжить', 'next'),
+                                              ('Пропустить поле «Услуги»', 'skip_services')]
+        return ServiceViewPublic.show_all(_, context, is_sub_already=True)
+
+    @staticmethod
+    @delete_last_message
+    def ask_photo(_, context: CallbackContext):
+        if context.match and context.match.string and context.match.string == 'skip_descriptions':
+            context.user_data['selected_ids'] = []
+        markup = InlineKeyboardMarkup(
+            [[InlineKeyboardButton('Пропустить поле «Фотография»', callback_data='skip_photo')],
+             [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+        return (context.bot.send_message(context.user_data['id'], 'Отправьте фото акции',
+                                         reply_markup=markup),
+                'PromotionAddition.ask_photo')
+
+    @staticmethod
+    @delete_last_message
+    def finish(update: Update, context: CallbackContext):
+        if update.message:
+            job_name = f'process {context.user_data["id"]}'
+            context.user_data['process.msg_text'] = 'Подождите. Фотография обрабатывается'
+            context.job_queue.run_repeating(process_view, 1, 0,
+                                            context=context, name=job_name)
+            stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
+                      else update.message.document.get_file().download_as_bytearray())
+            try:
+                url = upload_img(stream)
+                if not url:
+                    context.bot.send_message(
+                        context.user_data['id'],
+                        'Не удалось загрузить изображение. '
+                        f'Возможно, был превышен лимит размера фотографии ({IMG_FILE_SIZE_LIMIT} МБ')
+                    return ServiceAddition.ask_photo(update, context)
+                context.user_data['promotion_addition']['photo'] = url
+            except Exception as e:
+                context.bot.send_message(context.user_data['id'], f'Выпало следующее исключение: {str(e)}')
+                return PromotionAddition.ask_photo(update, context)
+            finally:
+                terminate_jobs(context, job_name)
+        with db_session.create_session() as session:
+            name = context.user_data['promotion_addition']['name']
+            promo = Promotion(**context.user_data.pop('promotion_addition'))
+            session.add(promo)
+            session.commit()
+            for service_id in context.user_data['selected_ids']:
+                service = session.query(Service).get(service_id)
+                promo.services.append(service)
+                session.add(promo)
+                session.commit()
+        context.user_data['selected_ids'] = []
+        context.user_data['action_text'] = None
+        context.bot.send_message(context.user_data['id'],
+                                 f'Акция <b>{name}</b> была успешно добавлена',
                                  parse_mode=ParseMode.HTML)
         return add_menu(update, context)

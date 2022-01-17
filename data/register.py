@@ -1,12 +1,14 @@
 from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
 from data.db import db_session
-from data.db.models.specialist import Specialist
-from data.db.models.service import Service
 from data.general import start
 from data.help import help_menu
 from data.mail_sender import send_mail
 from data.utils import get_config, delete_last_message
+
+from data.db.models.specialist import Specialist
+from data.db.models.service import Service
+from data.db.models.promotion import Promotion
 
 
 class Register:
@@ -23,7 +25,16 @@ class Register:
         'info.services.specialists': ('from data.view import ServiceViewPublic',
                                       'ServiceViewPublic.show_all',
                                       'info'),
-        'help': ('from data.help import help_menu', 'help_menu', 'help')
+        'help': ('from data.help import help_menu', 'help_menu', 'help'),
+        'help.promotions': ('from data.view import PromotionViewPublic',
+                            'PromotionViewPublic.show_all',
+                            'help'),
+        'help.promotions.services': ('from data.view import PromotionViewPublic',
+                                     'PromotionViewPublic.show_all',
+                                     'help'),
+        'help.promotions.services.specialists': ('from data.view import SpecialistViewPublic',
+                                                 'PromotionViewPublic.show_all',
+                                                 'help')
     }
 
     @staticmethod
@@ -47,6 +58,9 @@ class Register:
         elif 'services' in last_block:
             _type = 'Service'
             entity_id = int(context.match.string.split()[0])
+        elif 'promotions' in last_block:
+            _type = 'Promotion'
+            entity_id = int(context.match.string.split()[0])
         else:
             _type, entity_id = None, None
         context.user_data['register'] = {'_type': _type, 'entity_id': entity_id}
@@ -64,7 +78,7 @@ class Register:
                                      resize_keyboard=True, one_time_keyboard=True)
         return (context.bot.send_message(
             context.user_data['id'], 'Укажите свой номер телефона', reply_markup=markup),
-               f'{context.user_data["last_block"]}.register_phone')
+                f'{context.user_data["last_block"]}.register_phone')
 
     @staticmethod
     @delete_last_message
@@ -83,6 +97,8 @@ class Register:
                     prefix = f'к специалисту <b>{entity.speciality} {entity.full_name}</b> '
                 elif _type == 'Service':
                     prefix = f'на услугу <b>{entity.name}</b> '
+                elif _type == 'Promotion':
+                    prefix = f'на акцию <b>{entity.name}</b>'
         else:
             prefix = ''
         if not send_mail(get_config().get('email', {}).get('val'), 'Заявка на запись',

@@ -2,10 +2,11 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode, Upda
 from telegram.ext import CallbackContext
 
 from data.db import db_session
+from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
 from data.utils import delete_last_message, upload_img, clear_temp_vars
-from data.view import SpecialistViewPublic, ServiceViewPublic
+from data.view import SpecialistViewPublic, ServiceViewPublic, PromotionViewPublic
 
 
 @delete_last_message
@@ -15,9 +16,12 @@ def edit_menu(_, context: CallbackContext):
         context.user_data.pop('specialist_id')
     if context.user_data.get('service_id'):
         context.user_data.pop('service_id')
+    if context.user_data.get('promotion_id'):
+        context.user_data.pop('promotion_id')
     context.user_data['last_block'] = 'edit'
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Специалист', callback_data='edit_specialists')],
                                    [InlineKeyboardButton('Услуга', callback_data='edit_services')],
+                                   [InlineKeyboardButton('Акция', callback_data='edit_promotions')],
                                    [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     return (context.bot.send_message(context.user_data['id'], 'Выберите сущность для редактирования',
                                      reply_markup=markup), 'edit_menu')
@@ -54,8 +58,8 @@ class SpecialistEdit:
         context.user_data['key_to_change'] = context.match.string
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
-            spec = session.query(Specialist).get(context.user_data['specalist_id'])
-            if context.user_data['key_to_change'] != 'photo':
+            spec = session.query(Specialist).get(context.user_data['specialist_id'])
+            if context.user_data['key_to_change'] != 'photo' or not spec.photo:
                 return context.bot.send_message(
                     context.user_data['id'],
                     f'На что Вы хотите заменить '
@@ -100,7 +104,7 @@ class SpecialistEdit:
             session.commit()
             context.bot.send_message(
                 context.user_data['id'],
-                f'<b>Переменная {spec.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
+                f'Переменная <b>{spec.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
                 f'специалиста <b>{spec.speciality} {spec.full_name}</b> '
                 f'была успешно обновлена',
                 parse_mode=ParseMode.HTML)
@@ -186,7 +190,7 @@ class ServiceEdit:
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
             service = session.query(Service).get(context.user_data['service_id'])
-            if context.user_data['key_to_change'] != 'photo':
+            if context.user_data['key_to_change'] != 'photo' or not service.photo:
                 return context.bot.send_message(
                     context.user_data['id'],
                     f'На что Вы хотите заменить '
@@ -279,3 +283,130 @@ class ServiceEdit:
                 f'<b>Специалисты</b> услуги <b>{service.name}</b> '
                 f'были успешно обновлены', parse_mode=ParseMode.HTML)
             return ServiceEdit.edit_menu(_, context)
+
+
+class PromotionEdit:
+    @staticmethod
+    @delete_last_message
+    def show_all(_, context: CallbackContext, is_sub_already=True):
+        context.user_data['action_text'] = 'Редактировать'
+        PromotionViewPublic.show_all(_, context, is_sub_already=is_sub_already)
+        return 'edit.promotions.show_all'
+
+    @staticmethod
+    @delete_last_message
+    def edit_menu(_, context: CallbackContext):
+        if context.match and context.match.string and context.match.string.split()[0].isdigit():
+            context.user_data['promotion_id'] = int(context.match.string.split()[0])
+        with db_session.create_session() as session:
+            promotion = session.query(Promotion).get(context.user_data['promotion_id'])
+            buttons = []
+            for key, val in promotion.verbose_names_edit.items():
+                buttons.append([InlineKeyboardButton(val, callback_data=key)])
+            buttons.append([InlineKeyboardButton('Вернуться назад', callback_data='back')])
+            return (context.bot.send_message(
+                context.user_data['id'], f'Редактирование\n\n'
+                                         f'<b>Акция:</b> {promotion.name}',
+                reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
+                    'edit.promotions.edit_menu')
+
+    @staticmethod
+    @delete_last_message
+    def ask_new_value(_, context: CallbackContext):
+        context.user_data['key_to_change'] = context.match.string
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
+        with db_session.create_session() as session:
+            promotion = session.query(Promotion).get(context.user_data['promotion_id'])
+            if context.user_data['key_to_change'] != 'photo' or not promotion.photo:
+                return context.bot.send_message(
+                    context.user_data['id'],
+                    f'На что Вы хотите заменить '
+                    f'<b>{promotion.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n'
+                    f'<b>Текущее значение: </b> {getattr(promotion, context.user_data["key_to_change"])}',
+                    reply_markup=markup, parse_mode=ParseMode.HTML,
+                    disable_web_page_preview=True), 'edit.promotions.ask_new_value'
+            return (context.bot.send_photo(
+                context.user_data['id'], promotion.photo,
+                f'На что Вы хотите заменить '
+                f'<b>{promotion.verbose_names_edit[context.user_data["key_to_change"]]}</b>?\n\n',
+                reply_markup=markup, parse_mode=ParseMode.HTML), 'edit.promotions.ask_new_value')
+
+    @staticmethod
+    @delete_last_message
+    def set_new_value(update: Update, context: CallbackContext):
+        key_to_change = context.user_data['key_to_change']
+        with db_session.create_session() as session:
+            promotion = session.query(Promotion).get(context.user_data['promotion_id'])
+            if key_to_change == 'name':
+                name = update.message.text.strip().capitalize()
+                if session.query(Promotion).filter(Promotion.name == name).first():
+                    context.bot.send_message(
+                        context.user_data['id'],
+                        f'Акция под названием <b>{name}</b> уже существует!',
+                        parse_mode=ParseMode.HTML)
+                    return PromotionEdit.ask_new_value(update, context)
+                promotion.name = name
+            elif key_to_change == 'photo':
+                stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
+                          else update.message.document.get_file().download_as_bytearray())
+                try:
+                    promotion.photo = upload_img(stream)
+                except Exception as e:
+                    context.bot.send_message(context.user_data['id'],
+                                             f'Выпало следующее исключение: {str(e)}')
+                    return PromotionEdit.ask_new_value(update, context)
+            else:
+                setattr(promotion, key_to_change, update.message.text.strip())
+            session.add(promotion)
+            session.commit()
+            context.bot.send_message(
+                context.user_data['id'],
+                f'<b>Переменная {promotion.verbose_names_edit[context.user_data.pop("key_to_change")]}</b> '
+                f'акции <b>{promotion.name}</b> была успешно обновлена', parse_mode=ParseMode.HTML)
+            return PromotionEdit.edit_menu(update, context)
+
+    @staticmethod
+    @delete_last_message
+    def show_services(_, context: CallbackContext, reset: bool = True):
+        context.user_data['last_block'] = 'edit.promotions'
+        context.user_data['action_text'] = {'inactive': 'Выбрать', 'active': 'Выбрано'}
+        context.user_data['extra_buttons'] = [('Продолжить', 'next')]
+        with db_session.create_session() as session:
+            promotion = session.query(Promotion).get(context.user_data['promotion_id'])
+            if reset:
+                count = len(promotion.services)
+                context.user_data['selected_ids'] = [service.id for service in promotion.services]
+            else:
+                count = len(context.user_data['selected_ids'])
+            context.user_data['found_prefix'] = (
+                f'Выберите услуги, входящие в акцию <b>{promotion.name}</b>\n\n'
+                f'<b>Выбрано услуг:</b> {count}\n\n')
+        return ServiceViewPublic.show_all(_, context, is_sub_already=True, _filter=False)
+
+    @staticmethod
+    @delete_last_message
+    def handle_specialist_selection(_, context: CallbackContext):
+        service_id = int(context.match.string.split()[0])
+        if service_id in context.user_data['selected_ids']:
+            idx = context.user_data['selected_ids'].index(service_id)
+            end = (context.user_data['selected_ids'][idx + 1:]
+                   if idx + 1 < len(context.user_data['selected_ids']) else [])
+            context.user_data['selected_ids'] = context.user_data['selected_ids'][:idx] + end
+        else:
+            context.user_data['selected_ids'].append(service_id)
+        return PromotionEdit.show_services(_, context, reset=False)
+
+    @staticmethod
+    @delete_last_message
+    def save_services(_, context: CallbackContext):
+        with db_session.create_session() as session:
+            promotion = session.query(Promotion).get(context.user_data['promotion_id'])
+            promotion.services = [session.query(Service).get(service_id)
+                                  for service_id in context.user_data['selected_ids']]
+            session.add(promotion)
+            session.commit()
+            context.bot.send_message(
+                context.user_data['id'],
+                f'<b>Услуги</b> акции <b>{promotion.name}</b> '
+                f'были успешно обновлены', parse_mode=ParseMode.HTML)
+            return PromotionEdit.edit_menu(_, context)

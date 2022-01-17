@@ -7,9 +7,9 @@ from telegram import ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, ConversationHandler,
                           CallbackQueryHandler, MessageHandler, Filters)
 
-from data.admin.add import add_menu, SpecialistAddition, ServiceAddition
-from data.admin.delete import SpecialistDelete, ServiceDelete, delete_menu
-from data.admin.edit import SpecialistEdit, edit_menu, ServiceEdit
+from data.admin.add import add_menu, SpecialistAddition, ServiceAddition, PromotionAddition
+from data.admin.delete import SpecialistDelete, ServiceDelete, delete_menu, PromotionDelete
+from data.admin.edit import SpecialistEdit, edit_menu, ServiceEdit, PromotionEdit
 from data.admin.panel import show_data, reset_data, ask_resetting_data, request_changing_data, change_data
 from data.consult import Consult
 from data.db import db_session
@@ -19,7 +19,7 @@ from data.help import help_menu, ask_review, greet_for_review, show_contacts
 from data.info import info_menu, show_address, show_socials, about, choose_route_engine
 from data.register import Register
 from data.utils import get_config
-from data.view import SpecialistViewPublic, ServiceViewPublic
+from data.view import SpecialistViewPublic, ServiceViewPublic, PromotionViewPublic
 
 
 def clear_keyboard(_, context):
@@ -56,6 +56,7 @@ def main():
                                MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, change_data)],
                 'add_menu': [CallbackQueryHandler(SpecialistAddition.ask_full_name, pattern='add_specialists'),
                              CallbackQueryHandler(ServiceAddition.ask_name, pattern='add_services'),
+                             CallbackQueryHandler(PromotionAddition.ask_name, pattern='add_promotions'),
                              CallbackQueryHandler(start, pattern='back')],
                 'SpecialistAddition.ask_full_name': [
                     MessageHandler(Filters.text, SpecialistAddition.ask_speciality),
@@ -80,6 +81,26 @@ def main():
                     MessageHandler(Filters.photo | Filters.document, SpecialistAddition.finish),
                     CallbackQueryHandler(SpecialistAddition.finish, pattern='skip_photo'),
                     CallbackQueryHandler(SpecialistAddition.ask_services, pattern='back')],
+                'PromotionAddition.ask_name': [
+                    MessageHandler(Filters.text, PromotionAddition.ask_description),
+                    CallbackQueryHandler(add_menu, pattern='back')],
+                'PromotionAddition.ask_description': [
+                    MessageHandler(Filters.text, PromotionAddition.ask_services),
+                    CallbackQueryHandler(PromotionAddition.ask_services, pattern='skip_description'),
+                    CallbackQueryHandler(PromotionAddition.ask_name, pattern='back')],
+                'PromotionAddition.services.show_all': [
+                    CallbackQueryHandler(PromotionAddition.handle_service_selection, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(PromotionAddition.ask_photo, pattern='next'),
+                    CallbackQueryHandler(PromotionAddition.ask_photo, pattern='skip_specialists'),
+                    CallbackQueryHandler(PromotionAddition.ask_description, pattern='back')],
+                'PromotionAddition.ask_photo': [
+                    MessageHandler(Filters.photo | Filters.document, PromotionAddition.finish),
+                    CallbackQueryHandler(PromotionAddition.finish, pattern='skip_photo'),
+                    CallbackQueryHandler(PromotionAddition.ask_services, pattern='back')],
                 'ServiceAddition.ask_name': [
                     MessageHandler(Filters.text, ServiceAddition.ask_description),
                     CallbackQueryHandler(add_menu, pattern='back')],
@@ -102,6 +123,7 @@ def main():
                     CallbackQueryHandler(ServiceAddition.ask_specialists, pattern='back')],
                 'edit_menu': [CallbackQueryHandler(SpecialistEdit.show_all, pattern='edit_specialists'),
                               CallbackQueryHandler(ServiceEdit.show_all, pattern='edit_services'),
+                              CallbackQueryHandler(PromotionEdit.show_all, pattern='edit_promotions'),
                               CallbackQueryHandler(start, pattern='back')],
                 'edit.services.show_all': [
                     CallbackQueryHandler(ServiceEdit.edit_menu, pattern='[0-9]+ action'),
@@ -153,8 +175,34 @@ def main():
                     MessageHandler(Filters.text | Filters.photo, SpecialistEdit.set_new_value),
                     CallbackQueryHandler(SpecialistEdit.edit_menu, pattern='back')
                 ],
+                'edit.promotions.show_all': [
+                    CallbackQueryHandler(PromotionEdit.edit_menu, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(PromotionViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(PromotionViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), PromotionViewPublic.set_page),
+                    CallbackQueryHandler(edit_menu, pattern='back')],
+                'edit.promotions.services.show_all': [
+                    CallbackQueryHandler(PromotionEdit.handle_specialist_selection, pattern='[0-9]+'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(PromotionEdit.save_services, pattern='next'),
+                    CallbackQueryHandler(PromotionEdit.edit_menu, pattern='back')
+                ],
+                'edit.promotions.edit_menu': [
+                    CallbackQueryHandler(PromotionEdit.show_all, pattern='back'),
+                    CallbackQueryHandler(PromotionEdit.show_services, pattern='services'),
+                    CallbackQueryHandler(PromotionEdit.ask_new_value, pattern='.*')
+                ],
+                'edit.promotions.ask_new_value': [
+                    MessageHandler(Filters.text | Filters.photo, PromotionEdit.set_new_value),
+                    CallbackQueryHandler(PromotionEdit.edit_menu, pattern='back')
+                ],
                 'delete_menu': [CallbackQueryHandler(SpecialistDelete.show_all, pattern='delete_specialists'),
                                 CallbackQueryHandler(ServiceDelete.show_all, pattern='delete_services'),
+                                CallbackQueryHandler(PromotionDelete.show_all, pattern='delete_promotions'),
                                 CallbackQueryHandler(start, pattern='back')],
                 'delete.specialists.show_all': [
                     CallbackQueryHandler(SpecialistDelete.confirm, pattern='[0-9]+ action'),
@@ -176,6 +224,16 @@ def main():
                 'delete.services.confirm': [
                     CallbackQueryHandler(ServiceDelete.delete, pattern='confirmed'),
                     CallbackQueryHandler(ServiceDelete.show_all, pattern='back')],
+                'delete.promotions.show_all': [
+                    CallbackQueryHandler(PromotionDelete.confirm, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(PromotionViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(PromotionViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), PromotionViewPublic.set_page),
+                    CallbackQueryHandler(delete_menu, pattern='back')],
+                'delete.promotions.confirm': [
+                    CallbackQueryHandler(PromotionDelete.delete, pattern='confirmed'),
+                    CallbackQueryHandler(PromotionDelete.show_all, pattern='back')],
                 'ask_for_help': [CallbackQueryHandler(help_menu, pattern='yes'),
                                  CallbackQueryHandler(info_menu, pattern='no'),
                                  CallbackQueryHandler(start, pattern='back')],
@@ -256,7 +314,8 @@ def main():
                 'help_menu': [CallbackQueryHandler(Register.register_name, pattern='register'),
                               CallbackQueryHandler(ask_review, pattern='send_review'),
                               CallbackQueryHandler(show_contacts, pattern='contacts'),
-                              CallbackQueryHandler(ask_for_help_menu, pattern='back')],
+                              CallbackQueryHandler(ask_for_help_menu, pattern='back'),
+                              CallbackQueryHandler(PromotionViewPublic.show_all, pattern='promotions')],
                 'help.ask_review': [CallbackQueryHandler(greet_for_review, pattern='review_sent'),
                                     CallbackQueryHandler(help_menu, pattern='back')],
                 'help.contacts': [CallbackQueryHandler(help_menu, pattern='back')],
@@ -266,6 +325,49 @@ def main():
                 'help.register_phone': [
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
                     MessageHandler(Filters.text('Вернуться назад'), Register.register_name)],
+                'help.promotions.show_all': [
+                    CallbackQueryHandler(PromotionViewPublic.register, pattern='[0-9]* action'),
+                    CallbackQueryHandler(PromotionViewPublic.show_services, pattern='[0-9]+'),
+                    CallbackQueryHandler(PromotionViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(PromotionViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), PromotionViewPublic.set_page),
+                    CallbackQueryHandler(info_menu, pattern='back')],
+                'help.promotions.register_name': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
+                    MessageHandler(Filters.text('Вернуться назад'), PromotionViewPublic.show_all)],
+                'help.promotions.register_phone': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)
+                ],
+                'help.promotions.services.show_all': [
+                    CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(ServiceViewPublic.show_specialists, pattern='[0-9]+'),
+                    CallbackQueryHandler(ServiceViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
+                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='back')],
+                'help.promotions.services.register_name': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
+                    MessageHandler(Filters.text('Вернуться назад'), ServiceViewPublic.show_all)],
+                'help.promotions.services.register_phone': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)],
+                'help.promotions.services.specialists.show_all': [
+                    CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+ action'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_services, pattern='[0-9]+'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_next_page, pattern='next_page'),
+                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
+                    CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
+                    MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
+                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='back')],
+                'help.promotions.services.specialists.register_name': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.text, Register.register_phone),
+                    MessageHandler(Filters.text('Вернуться назад'), SpecialistViewPublic.show_all)],
+                'help.promotions.services.specialists.register_phone': [
+                    MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
+                    MessageHandler(Filters.text('Вернуться назад'), Register.register_name)]
                 },
         # 'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
         #               CallbackQueryHandler(ask_phone, pattern='ask_phone'),

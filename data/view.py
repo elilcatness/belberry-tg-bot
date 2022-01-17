@@ -2,6 +2,7 @@ from telegram.ext import CallbackContext
 
 from data.constants import PAGINATION_STEP
 from data.db import db_session
+from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
 from data.utils import delete_last_message, build_pagination, process_view, terminate_jobs
@@ -130,3 +131,63 @@ class ServiceViewPublic:
         if 'services' not in context.user_data['last_block']:
             context.user_data['last_block'] = f'{context.user_data["last_block"]}.services'
         return SpecialistViewPublic.show_all(_, context, is_sub_already=True)
+
+
+class PromotionViewPublic:
+    @staticmethod
+    @delete_last_message
+    def show_all(_, context: CallbackContext, is_sub_already: bool = False, _filter: bool = True):
+        if context.user_data.get('promotion_id'):
+            context.user_data.pop('promotion_id')
+        if not is_sub_already and context.user_data.get('found_suffix'):
+            context.user_data.pop('found_suffix')
+        with db_session.create_session() as session:
+            if context.user_data.get('service_id') and _filter:
+                service = session.query(Service).get(context.user_data['service_id'])
+                context.user_data['found_suffix'] = f'. Услуга: <b>{service.name}</b>'
+                promotions = [promo.to_dict() for promo in session.query(Promotion).all()
+                              if service in promo.services]
+            else:
+                promotions = [promo.to_dict() for promo in session.query(Promotion).all()]
+        if not context.user_data.get('promo_pagination'):
+            context.user_data['promo_pagination'] = 1
+        context.user_data['promo_pages_count'] = build_pagination(
+            context, promotions, PAGINATION_STEP, context.user_data['promo_pagination'],
+            ('акция', 'акции', 'акций'), 'Услуги', is_sub_already,
+            found_phrases=['Найдена', 'Найдено', 'Найдено'])
+        return (f'{context.user_data["last_block"]}.promotions.show_all'
+                if 'promotions' not in context.user_data['last_block']
+                else f'{context.user_data["last_block"]}.show_all')
+
+    @staticmethod
+    def set_next_page(_, context):
+        context.user_data['promo_pagination'] += 1
+        return ServiceViewPublic.show_all(_, context)
+
+    @staticmethod
+    def set_previous_page(_, context):
+        context.user_data['promo_pagination'] -= 1
+        return ServiceViewPublic.show_all(_, context)
+
+    @staticmethod
+    def set_page(update, context):
+        n = int(update.message.text)
+        if not (1 <= n <= context.user_data['promo_pages_count']):
+            update.message.reply_text('Введён неверный номер страницы')
+        else:
+            context.user_data['promo_pagination'] = n
+        return ServiceViewPublic.show_all(update, context)
+
+    @staticmethod
+    def register(update, context: CallbackContext):
+        if 'promotions' not in context.user_data['last_block']:
+            context.user_data['last_block'] = f'{context.user_data["last_block"]}.promotions'
+        return Register.register_name(update, context)
+
+    @staticmethod
+    @delete_last_message
+    def show_services(_, context: CallbackContext):
+        context.user_data['promotion_id'] = int(context.match.string)
+        if 'promotions' not in context.user_data['last_block']:
+            context.user_data['last_block'] = f'{context.user_data["last_block"]}.promotions'
+        return ServiceViewPublic.show_all(_, context, is_sub_already=True)

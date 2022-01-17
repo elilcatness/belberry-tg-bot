@@ -18,7 +18,7 @@ def help_menu(_, context: CallbackContext):
          [InlineKeyboardButton('Специалисты', callback_data='specialists')],
          [InlineKeyboardButton('Оставить отзыв', callback_data='send_review')],
          [InlineKeyboardButton('Контакты', callback_data='contacts')],
-         [InlineKeyboardButton('Узнать актуальные акции', callback_data='promos')],
+         [InlineKeyboardButton('Узнать актуальные акции', callback_data='promotions')],
          [InlineKeyboardButton('Перейти на сайт',
                                url=get_config().get('URL клиники', {}).get('val', 'https://belberry.net'))]])
     return context.bot.send_message(context.user_data['id'], 'Выберите опцию',

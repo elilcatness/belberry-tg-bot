@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Table, Integer, String, Text, ForeignKey
-from sqlalchemy.orm import relation
+from sqlalchemy.orm import relationship
 
 from data.db.db_session import SqlAlchemyBase
 
@@ -22,7 +22,7 @@ class Specialist(SqlAlchemyBase):
     speciality = Column(String)
     description = Column(Text, nullable=True)
     photo = Column(String, nullable=True)
-    services = relation('Service', secondary=service_to_specialist)
+    services = relationship('Service', secondary=service_to_specialist)
 
     def to_dict(self):
         return {key if key not in self.verbose_names.keys() else self.verbose_names[key]: getattr(self, key)

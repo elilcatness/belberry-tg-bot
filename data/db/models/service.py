@@ -1,7 +1,11 @@
-from sqlalchemy import Column, Integer, String, Text
-from sqlalchemy.orm import relation
+from sqlalchemy import Column, Integer, String, Text, Table, ForeignKey
+from sqlalchemy.orm import relationship
 
 from data.db.db_session import SqlAlchemyBase
+
+promotion_to_service = Table('promotion_to_service', SqlAlchemyBase.metadata,
+                             Column('service', Integer, ForeignKey('services.id')),
+                             Column('promotion', Integer, ForeignKey('promotions.id')))
 
 
 class Service(SqlAlchemyBase):
@@ -15,7 +19,8 @@ class Service(SqlAlchemyBase):
     name = Column(String, unique=True)
     description = Column(Text, nullable=True)
     photo = Column(String, nullable=True)
-    specialists = relation('Specialist', secondary='service_to_specialist', back_populates='services')
+    specialists = relationship('Specialist', secondary='service_to_specialist')
+    promotions = relationship('Promotion', secondary='service_to_promotion')
 
     def to_dict(self):
         return {key if key not in self.verbose_names.keys() else self.verbose_names[key]: getattr(self, key)

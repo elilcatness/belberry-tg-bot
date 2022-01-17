@@ -12,6 +12,8 @@ def start(update, context):
         context.user_data.pop('specialist_id')
     if context.user_data.get('service_id'):
         context.user_data.pop('service_id')
+    if context.user_data.get('promotion_id'):
+        context.user_data.pop('promotion_id')
     cfg = get_config()
     buttons = [
          [InlineKeyboardButton('Нужна помощь?', callback_data='help')],
