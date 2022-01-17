@@ -62,7 +62,7 @@
     "can_be_list": true
   },
   "smtp_host": {
-    "val": "smtp.yandex.ru",
+    "val": "smtp.mail.ru",
     "can_be_list": false
   },
   "smtp_port": {
@@ -70,11 +70,11 @@
     "can_be_list": false
   },
   "smtp_from": {
-    "val": "potapo.potapov2014@yandex.ru",
+    "val": "bb_notif@mail.ru",
     "can_be_list": false
   },
   "smtp_password": {
-    "val": "omeuirnvfbhwxrpw",
+    "val": "LFfe5yrW1Ygn2aghmvXA",
     "can_be_list": false
   },
   "cloudinary.cloud_name": {

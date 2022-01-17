@@ -34,7 +34,19 @@ class Register:
                                      'help'),
         'help.promotions.services.specialists': ('from data.view import SpecialistViewPublic',
                                                  'PromotionViewPublic.show_all',
-                                                 'help')
+                                                 'help'),
+        'help.specialists': ('from data.view import SpecialistViewPublic',
+                             'SpecialistViewPublic.show_all',
+                             'help'),
+        'help.specialists.services': ('from data.view import SpecialistViewPublic',
+                                      'SpecialistViewPublic.show_all',
+                                      'help'),
+        'help.services': ('from data.view import ServiceViewPublic',
+                          'ServiceViewPublic.show_all',
+                          'help'),
+        'help.services.specialists': ('from data.view import ServiceViewPublic',
+                                      'ServiceViewPublic.show_all',
+                                      'help'),
     }
 
     @staticmethod
