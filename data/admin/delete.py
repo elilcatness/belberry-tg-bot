@@ -5,7 +5,7 @@ from data.db import db_session
 from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
-from data.utils import delete_last_message, clear_temp_vars
+from data.utils import delete_last_message, clear_temp_vars, delete_img
 from data.view import SpecialistViewPublic, ServiceViewPublic, PromotionViewPublic
 
 
@@ -54,9 +54,11 @@ class SpecialistDelete:
     def delete(_, context: CallbackContext):
         with db_session.create_session() as session:
             spec = session.query(Specialist).get(context.user_data.pop('specialist_id'))
-            speciality, full_name = spec.speciality, spec.full_name
+            speciality, full_name, photo = spec.speciality, spec.full_name, spec.photo
             session.delete(spec)
             session.commit()
+            if photo:
+                delete_img(photo)
             context.bot.send_message(
                 context.user_data['id'],
                 f'Специалист <b>{speciality} {full_name}</b> был успешно удалён',
@@ -90,9 +92,11 @@ class ServiceDelete:
     def delete(_, context: CallbackContext):
         with db_session.create_session() as session:
             service = session.query(Service).get(context.user_data.pop('service_id'))
-            name = service.name
+            name, photo = service.name, service.photo
             session.delete(service)
             session.commit()
+            if photo:
+                delete_img(photo)
             context.bot.send_message(
                 context.user_data['id'],
                 f'Услуга <b>{name}</b> была успешно удалена',
@@ -126,9 +130,11 @@ class PromotionDelete:
     def delete(_, context: CallbackContext):
         with db_session.create_session() as session:
             promotion = session.query(Promotion).get(context.user_data.pop('promotion_id'))
-            name = promotion.name
+            name, photo = promotion.name, promotion.photo
             session.delete(promotion)
             session.commit()
+            if photo:
+                delete_img(photo)
             context.bot.send_message(
                 context.user_data['id'],
                 f'Акция <b>{name}</b> была успешно удалена',
