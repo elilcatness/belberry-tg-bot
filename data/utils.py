@@ -119,7 +119,7 @@ def process_view(context: CallbackContext):
     context.job.context.user_data['process.count'] = (count + 1) % 4
 
 
-def make_agree_with_number(n: int, verbose_names: list[str]):
+def make_agree_with_number(n: int, verbose_names: list):
     if str(n)[-1] == '1' and n != 11:
         return verbose_names[0]
     elif str(n)[-1] in ['2', '3', '4'] and str(n) not in ['12', '13', '14']:
@@ -127,10 +127,10 @@ def make_agree_with_number(n: int, verbose_names: list[str]):
     return verbose_names[2]
 
 
-def build_pagination(context: CallbackContext, array: list[dict],
-                     pag_step: int, current_page: int, verbose_names: list[str],
+def build_pagination(context: CallbackContext, array: list,
+                     pag_step: int, current_page: int, verbose_names: list,
                      sub_category_verbose_name: str, is_sub_already=False,
-                     found_phrases: list[str] = None):
+                     found_phrases=None):
     array_length = len(array)
     verbose_name = make_agree_with_number(array_length, verbose_names)
     pages_count = (
@@ -154,9 +154,11 @@ def build_pagination(context: CallbackContext, array: list[dict],
         buttons = []
         if not is_sub_already:
             buttons.append([InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')])
-        action_text = context.user_data.get('action_text', 'Записаться')
-        if isinstance(action_text, dict):
+        action_text = context.user_data.get('action_text')
+        if isinstance(action_text, dict) and action_text:
             action_text = action_text['active' if d_id in context.user_data['selected_ids'] else 'inactive']
+        elif not action_text:
+            action_text = 'Записаться'
         buttons.append([InlineKeyboardButton(action_text, callback_data=f'{d_id} action')])
         markup = InlineKeyboardMarkup(buttons)
         try:

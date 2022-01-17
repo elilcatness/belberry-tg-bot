@@ -82,7 +82,12 @@ class ServiceViewPublic:
         if not is_sub_already and context.user_data.get('found_suffix'):
             context.user_data.pop('found_suffix')
         with db_session.create_session() as session:
-            if context.user_data.get('specialist_id') and _filter:
+            if context.user_data.get('promotion_id') and _filter:
+                promotion = session.query(Promotion).get(context.user_data['promotion_id'])
+                context.user_data['found_suffix'] = f'. Акция: <b>{promotion.name}</b>'
+                services = [service.to_dict() for service in session.query(Service).all()
+                            if service in promotion.services]
+            elif context.user_data.get('specialist_id') and _filter:
                 spec = session.query(Specialist).get(context.user_data['specialist_id'])
                 context.user_data['found_suffix'] = f'. Специалист: <b>{spec.speciality} {spec.full_name}</b>'
                 services = [service.to_dict() for service in session.query(Service).all()

@@ -19,10 +19,9 @@ def help_menu(_, context: CallbackContext):
          [InlineKeyboardButton('Оставить отзыв', callback_data='send_review')],
          [InlineKeyboardButton('Контакты', callback_data='contacts')],
          [InlineKeyboardButton('Узнать актуальные акции', callback_data='promotions')],
-         [InlineKeyboardButton('Перейти на сайт',
-                               url=get_config().get('URL клиники', {}).get('val', 'https://belberry.net'))]])
-    return context.bot.send_message(context.user_data['id'], 'Выберите опцию',
-                                    reply_markup=markup), 'help_menu'
+         [InlineKeyboardButton(
+             'Перейти на сайт', url=get_config().get('URL клиники', dict()).get('val', 'https://belberry.net'))]])
+    return context.bot.send_message(context.user_data['id'], 'Выберите опцию', reply_markup=markup), 'help_menu'
 
 
 @delete_last_message
