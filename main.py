@@ -94,7 +94,7 @@ def main():
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
                     CallbackQueryHandler(PromotionAddition.ask_photo, pattern='next'),
-                    CallbackQueryHandler(PromotionAddition.ask_photo, pattern='skip_specialists'),
+                    CallbackQueryHandler(PromotionAddition.ask_photo, pattern='skip_services'),
                     CallbackQueryHandler(PromotionAddition.ask_description, pattern='back')],
                 'PromotionAddition.ask_photo': [
                     MessageHandler(Filters.photo | Filters.document, PromotionAddition.finish),
@@ -430,15 +430,6 @@ def main():
                     MessageHandler((~Filters.text('Вернуться назад')) & Filters.all, Register.finish),
                     MessageHandler(Filters.text('Вернуться назад'), Register.register_name)]
                 },
-        # 'help_menu': [CallbackQueryHandler(register_name, pattern='register'),
-        #               CallbackQueryHandler(ask_phone, pattern='ask_phone'),
-        #               CallbackQueryHandler(show_contacts, pattern='contacts'),
-        #               CallbackQueryHandler(ask_for_help_menu, pattern='back')],
-        # 'contacts': [CallbackQueryHandler(help_menu, pattern='back')],
-
-        # 'register_phone': [MessageHandler((~Filters.text('Вернуться назад')) & Filters.all,
-        #                                   finish_registration),
-        #                    MessageHandler(Filters.text('Вернуться назад'), register_name)]},
         fallbacks=[CommandHandler('start', start)])
     updater.dispatcher.add_handler(conv_handler)
     load_states(updater, conv_handler)
