@@ -103,7 +103,7 @@ class SpecialistViewPublic:
     @staticmethod
     @delete_last_message
     def show_services(_, context: CallbackContext):
-        if context.match.string.split()[-1].isdigit():
+        if context.match and context.match.string.split()[-1].isdigit():
             context.user_data['specialist_id'] = int(context.match.string.split()[-1])
         if 'specialists' not in context.user_data['last_block']:
             context.user_data['last_block'] = f'{context.user_data["last_block"]}.specialists'
@@ -209,7 +209,8 @@ class ServiceViewPublic:
     @staticmethod
     @delete_last_message
     def show_specialists(_, context: CallbackContext):
-        context.user_data['service_id'] = int(context.match.string.split()[-1])
+        if context.match and context.match.string.split()[-1].isdigit():
+            context.user_data['service_id'] = int(context.match.string.split()[-1])
         if 'services' not in context.user_data['last_block']:
             context.user_data['last_block'] = f'{context.user_data["last_block"]}.services'
         context.user_data['specialists.is_sub_already'] = True
