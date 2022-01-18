@@ -103,8 +103,8 @@ class Register:
             else update.message.text)
         markup = ReplyKeyboardRemove()
         print(context.user_data['register'])
-        _type = context.user_data['register'].pop('_type')
-        entity_id = context.user_data['register'].pop('entity_id')
+        _type = context.user_data['register'].get('_type')
+        entity_id = context.user_data['register'].get('entity_id')
         if _type:
             with db_session.create_session() as session:
                 entity = session.query(eval(_type)).get(entity_id)
@@ -126,6 +126,7 @@ class Register:
         else:
             update.message.reply_text('Ваша заявка была успешно отправлена. Ожидайте звонка',
                                       reply_markup=markup)
+        context.user_data.pop('register')
         if context.user_data.get('consult_return_fn'):
             import_statement, func, last_block = context.user_data.pop('consult_return_fn')
             exec(import_statement)
