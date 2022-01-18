@@ -84,7 +84,7 @@ def show_socials(_, context: CallbackContext):
     cfg = get_config()
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
     if cfg.get('Соц.сети', {}).get('val'):
-        val = [cfg['Соц.сети']['val']] if not isinstance(cfg['Соц.сети'], list) else cfg['Соц.сети']['val']
+        val = [cfg['Соц.сети']['val']] if not isinstance(cfg['Соц.сети']['val'], list) else cfg['Соц.сети']['val']
         text = ('<b>Наши социальные сети:</b>\n\n' + '\n'.join([f'• {s}' for s in val]))
     else:
         text = 'На данный момент у клиники не указаны никакие социальные сети'
