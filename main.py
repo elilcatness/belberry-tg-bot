@@ -266,7 +266,7 @@ def main():
                     CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
-                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='back')
+                    CallbackQueryHandler(SpecialistViewPublic.show_card, pattern='back')
                 ],
                 'info.specialists.services.show_card': [
                     CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]+'),
@@ -304,7 +304,7 @@ def main():
                     CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
-                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='back')],
+                    CallbackQueryHandler(ServiceViewPublic.show_card, pattern='back')],
                 'info.services.specialists.show_card': [
                     CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+'),
                     CallbackQueryHandler(ServiceViewPublic.show_specialists, pattern='back')
@@ -341,7 +341,7 @@ def main():
                     CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
-                    CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='back')
+                    CallbackQueryHandler(SpecialistViewPublic.show_card, pattern='back')
                 ],
                 'help.specialists.services.show_card': [
                     CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]+'),
@@ -379,7 +379,7 @@ def main():
                     CallbackQueryHandler(SpecialistViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(SpecialistViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), SpecialistViewPublic.set_page),
-                    CallbackQueryHandler(ServiceViewPublic.show_all, pattern='back')],
+                    CallbackQueryHandler(ServiceViewPublic.show_card, pattern='back')],
                 'help.services.specialists.show_card': [
                     CallbackQueryHandler(SpecialistViewPublic.register, pattern='[0-9]+'),
                     CallbackQueryHandler(ServiceViewPublic.show_specialists, pattern='back')
@@ -440,7 +440,7 @@ def main():
                     CallbackQueryHandler(ServiceViewPublic.show_all, pattern='refresh'),
                     CallbackQueryHandler(ServiceViewPublic.set_previous_page, pattern='prev_page'),
                     MessageHandler(Filters.regex(r'[0-9]+'), ServiceViewPublic.set_page),
-                    CallbackQueryHandler(PromotionViewPublic.show_all, pattern='back')],
+                    CallbackQueryHandler(PromotionViewPublic.show_card, pattern='back')],
                 'help.promotions.services.show_card': [
                     CallbackQueryHandler(ServiceViewPublic.register, pattern='[0-9]+'),
                     CallbackQueryHandler(PromotionViewPublic.show_services, pattern='back')
