@@ -144,7 +144,7 @@ def build_pagination(context: CallbackContext, array: list,
     action_text = context.user_data.get('action_text')
     active, inactive = (action_text['active'], action_text['inactive']) if isinstance(action_text, dict) else (None, None)
     buttons = []
-    for entity_id, entity_name in array:
+    for entity_id, entity_name in array[start:end]:
         text = (f'{entity_name} ({active if entity_id in context.user_data["selected_ids"] else inactive})' 
                 if active and inactive else entity_name)
         buttons.append([InlineKeyboardButton(text, callback_data=entity_id)])
