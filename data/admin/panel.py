@@ -56,39 +56,45 @@ def request_changing_data(_, context):
 
 @delete_last_message
 def change_data(update: Update, context):
-    # if context.user_data.get('message_id'):
-    #     context.bot.deleteMessage(context.user_data['id'], context.user_data.pop('message_id'))
     cfg = get_config()
     key = context.user_data['key_to_change']
-    if key == 'admins' and str(update.message.from_user.id) not in update.message.text.split(';'):
-        update.message.reply_text('Вы не можете удалить сами себя из admins')
-        return show_data(update, context)
-    if 'фото' in key.lower():
-        photo = update.message.photo
-        if not photo:
-            update.message.reply_text('Должно быть прикреплено фото')
-            return request_changing_data(update, context)
-        stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
-                  else update.message.document.get_file().download_as_bytearray())
+    if key == 'Шаг пагинации':
         try:
-            prev_url = cfg[key]['val']
-            url = upload_img(stream)
-            if not url:
-                update.message.reply_text(
-                    'Не удалось загрузить изображение. '
-                    f'Возможно, был превышен лимит размера фотографии ({IMG_FILE_SIZE_LIMIT} МБ')
-                return request_changing_data(update, context)
-            cfg[key]['val'] = url
-            with open(os.path.join('data', 'config.json'), encoding='utf-8') as f:
-                default_cfg = json.loads(f.read())
-                if prev_url != default_cfg[key] and 'res.cloudinary.com' in prev_url:
-                    delete_img(prev_url)
-        except Exception as e:
-            update.message.reply_text(f'Выпало следующее исключение: {str(e)}')
-            return request_changing_data(update, context)
+            val = int(update.message.text)
+            assert val > 0
+            cfg[key]['val'] = val
+        except (ValueError, AssertionError):
+            update.message.reply_text('Неверный формат шага пагинации')
     else:
-        val = update.message.text.strip().split(';')
-        cfg[key]['val'] = val[0] if len(val) == 1 or not cfg[key]['can_be_list'] else [v.strip() for v in val]
+        if key == 'admins' and str(update.message.from_user.id) not in update.message.text.split(';'):
+            update.message.reply_text('Вы не можете удалить сами себя из admins')
+            return show_data(update, context)
+        if 'фото' in key.lower():
+            photo = update.message.photo
+            if not photo:
+                update.message.reply_text('Должно быть прикреплено фото')
+                return request_changing_data(update, context)
+            stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
+                      else update.message.document.get_file().download_as_bytearray())
+            try:
+                prev_url = cfg[key]['val']
+                url = upload_img(stream)
+                if not url:
+                    update.message.reply_text(
+                        'Не удалось загрузить изображение. '
+                        f'Возможно, был превышен лимит размера фотографии ({IMG_FILE_SIZE_LIMIT} МБ')
+                    return request_changing_data(update, context)
+                cfg[key]['val'] = url
+                with open(os.path.join('data', 'config.json'), encoding='utf-8') as f:
+                    default_cfg = json.loads(f.read())
+                    if prev_url != default_cfg[key] and 'res.cloudinary.com' in prev_url:
+                        delete_img(prev_url)
+            except Exception as e:
+                update.message.reply_text(f'Выпало следующее исключение: {str(e)}')
+                return request_changing_data(update, context)
+        else:
+            val = update.message.text.strip().split(';')
+            cfg[key]['val'] = val[0] if len(val) == 1 or not cfg[key]['can_be_list'] else [v.strip() for v in val]
     save_config(cfg)
     update.message.reply_text(f'Переменная <b>{context.user_data["key_to_change"]}</b> была обновлена',
                               parse_mode=ParseMode.HTML)

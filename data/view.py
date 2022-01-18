@@ -2,12 +2,11 @@ from telegram.ext import CallbackContext
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 from telegram.error import BadRequest
 
-from data.constants import PAGINATION_STEP
 from data.db import db_session
 from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
-from data.utils import delete_last_message, build_pagination, process_view, terminate_jobs
+from data.utils import delete_last_message, build_pagination, process_view, terminate_jobs, get_config
 from data.register import Register
 
 
@@ -15,6 +14,7 @@ class SpecialistViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already=False, _filter=True):
+        cfg = get_config()
         if not is_sub_already:
             context.user_data['specialists.is_sub_already'] = False
         if ('specialists' in context.user_data.get('last_block', '')
@@ -35,7 +35,7 @@ class SpecialistViewPublic:
         if not context.user_data.get('spec_pagination'):
             context.user_data['spec_pagination'] = 1
         context.user_data['spec_pages_count'] = build_pagination(
-            context, specialists, PAGINATION_STEP, context.user_data['spec_pagination'],
+            context, specialists, cfg.get("Шаг пагинации", 7), context.user_data['spec_pagination'],
             ('специалист', 'специалиста', 'специалистов'))
         return (f'{context.user_data["last_block"]}.specialists.show_all'
                 if 'specialists' not in context.user_data['last_block']
@@ -115,6 +115,7 @@ class ServiceViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already: bool = False, _filter: bool = True):
+        cfg = get_config()
         if ('services' in context.user_data.get('last_block', '')
                 and not context.user_data.get('last_block', '').endswith('services')):
             context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.services'
@@ -140,7 +141,7 @@ class ServiceViewPublic:
         if not context.user_data.get('service_pagination'):
             context.user_data['service_pagination'] = 1
         context.user_data['service_pages_count'] = build_pagination(
-            context, services, PAGINATION_STEP, context.user_data['service_pagination'],
+            context, services, cfg.get('Шаг пагинации', 7), context.user_data['service_pagination'],
             ('услуга', 'услуги', 'услуг'), found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.services.show_all'
                 if 'services' not in context.user_data['last_block']
@@ -221,6 +222,7 @@ class PromotionViewPublic:
     @staticmethod
     @delete_last_message
     def show_all(_, context: CallbackContext, is_sub_already: bool = False, _filter: bool = True):
+        cfg = get_config()
         if ('promotions' in context.user_data.get('last_block', '')
                 and not context.user_data.get('last_block', '').endswith('promotions')):
             context.user_data['last_block'] = f'{context.user_data["last_block"].split(".")[0]}.promotions'
@@ -241,7 +243,7 @@ class PromotionViewPublic:
         if not context.user_data.get('promo_pagination'):
             context.user_data['promo_pagination'] = 1
         context.user_data['promo_pages_count'] = build_pagination(
-            context, promotions, PAGINATION_STEP, context.user_data['promo_pagination'],
+            context, promotions, cfg.get('Шаг пагинации', 7), context.user_data['promo_pagination'],
             ('акция', 'акции', 'акций'), found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.promotions.show_all'
                 if 'promotions' not in context.user_data['last_block']

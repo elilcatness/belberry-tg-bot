@@ -6,6 +6,10 @@
     ],
     "can_be_list": true
   },
+  "Шаг пагинации": {
+    "val": 7,
+    "can_be_list": false
+  },
   "Название клиники": {
     "val": "Клиника для животных",
     "can_be_list": false
