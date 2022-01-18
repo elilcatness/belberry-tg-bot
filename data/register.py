@@ -102,9 +102,14 @@ class Register:
             if getattr(update.message, 'contact') and getattr(update.message.contact, 'phone_number')
             else update.message.text)
         markup = ReplyKeyboardRemove()
-        print(context.user_data['register'])
-        _type = context.user_data['register'].get('_type')
-        entity_id = context.user_data['register'].get('entity_id')
+        try:
+            _type = context.user_data['register'].pop('_type')
+        except KeyError:
+            _type = None
+        try:
+            entity_id = context.user_data['register'].pop('entity_id')
+        except KeyError:
+            entity_id = None
         if _type:
             with db_session.create_session() as session:
                 entity = session.query(eval(_type)).get(entity_id)
@@ -119,7 +124,7 @@ class Register:
         if not send_mail(get_config().get('email', {}).get('val'), 'Заявка на запись',
                          'Поступила заявка на запись %sсо следующими данными:<br><br> '
                          '%s' % (prefix, '<br>'.join([f'<b>{key}</b>: {val}'
-                                              for key, val in context.user_data['register'].items()]))
+                                                      for key, val in context.user_data['register'].items()]))
                          + f'<div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
                            f'https://t.me/{context.bot.username}</i></div>'):
             update.message.reply_text('Произошла ошибка при создании заявки', reply_markup=markup)
