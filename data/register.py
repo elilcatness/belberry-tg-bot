@@ -125,7 +125,7 @@ class Register:
                          'Поступила заявка на запись %sсо следующими данными:<br><br> '
                          '%s' % (prefix, '<br>'.join([f'<b>{key}</b>: {val}'
                                                       for key, val in context.user_data['register'].items()]))
-                         + f'<div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
+                         + f'<br><div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
                            f'https://t.me/{context.bot.username}</i></div>'):
             update.message.reply_text('Произошла ошибка при создании заявки', reply_markup=markup)
         else:

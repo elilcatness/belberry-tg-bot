@@ -43,7 +43,7 @@ class Consult:
         if not email or not send_mail(
                 email, 'Заявка на консультацию',
                 f'Заявка на консультацию поступила с указанием следующего номера: {phone_number}\n\n'
-                f'<div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
+                f'<br><div align="right"><i>Уведомление было отправлено автоматически от Telegram бота '
                 f'https://t.me/{context.bot.username}</i></div>'):
             update.message.reply_text('Произошла ошибка при создании заявки', reply_markup=markup)
         else:
