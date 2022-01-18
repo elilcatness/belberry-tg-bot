@@ -17,7 +17,7 @@ def start(update, context):
         context.user_data.pop('promotion_id')
     cfg = get_config()
     buttons = [
-         [InlineKeyboardButton('Нужна помощь?', callback_data='help')],
+         [InlineKeyboardButton('Да', callback_data='help'), InlineKeyboardButton('Нет', callback_data='info')],
          [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', {}).get('val', 'https://belberry.net/'))],
          [InlineKeyboardButton('Позже', callback_data='later')]]
     phone = cfg.get('Номер телефона', {}).get('val', 'Не указан')
@@ -27,7 +27,8 @@ def start(update, context):
             f'Я помогу узнать про нашу клинику подробнее.\n'
             f'Могу быстро записать на приём к доктору.\n'
             f'А также буду напоминать о приёме, актуальных акциях и индивидуальных предложениях 😊\n\n'
-            f'Также со мной можно связаться по телефону: {phone}')
+            f'Также со мной можно связаться по телефону: {phone}\n\n'
+            f'<b>Нужна ли Вам помощь?</b>')
     if update.message:
         context.user_data['id'] = update.message.from_user.id
         context.user_data['first_name'] = update.message.from_user.first_name
@@ -48,16 +49,6 @@ def start(update, context):
     return (context.bot.send_message(context.user_data['id'], text % context.user_data['first_name'],
                                      reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
             'menu')
-
-
-@delete_last_message
-def ask_for_help_menu(_, context):
-    markup = InlineKeyboardMarkup(
-        [[InlineKeyboardButton('Да 🤗', callback_data='yes')],
-         [InlineKeyboardButton('Нет 😊', callback_data='no')],
-         [InlineKeyboardButton('Вернуться назад', callback_data='back')]])
-    return context.bot.send_message(context.user_data['id'], 'Нужна ли Вам помощь?',
-                                    reply_markup=markup), 'ask_for_help'
 
 
 @delete_last_message

@@ -129,8 +129,7 @@ def make_agree_with_number(n: int, verbose_names: list):
 
 def build_pagination(context: CallbackContext, array: list,
                      pag_step: int, current_page: int, verbose_names: list,
-                     sub_category_verbose_name: str, is_sub_already=False,
-                     found_phrases=None):
+                     found_phrases: list = None):
     array_length = len(array)
     verbose_name = make_agree_with_number(array_length, verbose_names)
     pages_count = (
@@ -142,43 +141,13 @@ def build_pagination(context: CallbackContext, array: list,
     end = current_page * pag_step if current_page * pag_step <= array_length else array_length
     found_phrase = make_agree_with_number(array_length, ['Найден', 'Найдено', 'Найдено'] if not found_phrases
                                           else found_phrases)
-    msg = context.bot.send_message(context.user_data['id'],
-                                   f'{context.user_data.get("found_prefix", "")}'
-                                   f'{found_phrase} <b>{array_length}</b> {verbose_name}'
-                                   f'{context.user_data.get("found_suffix", "")}',
-                                   parse_mode=ParseMode.HTML)
-    context.user_data['messages_to_delete'] = context.user_data.get(
-        'messages_to_delete', []) + [msg.message_id]
-    for d in array[start:end]:
-        d_id = d.pop('id')
-        buttons = []
-        action_text = context.user_data.get('action_text')
-        if isinstance(action_text, dict) and action_text:
-            action_text = action_text['active' if d_id in context.user_data['selected_ids'] else 'inactive']
-        elif not action_text:
-            action_text = 'Записаться'
-        if not is_sub_already:
-            buttons.append([InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')])
-        buttons.append([InlineKeyboardButton(action_text, callback_data=f'{d_id} action')])
-        markup = InlineKeyboardMarkup(buttons)
-        try:
-            photo = d.pop('photo')
-        except KeyError:
-            photo = None
-        text = '\n'.join([f'<b>{key}</b>: {val if val else "Не указано"}' for key, val in d.items()])
-        photo_sent = False
-        if photo:
-            try:
-                msg = context.bot.send_photo(context.user_data['id'], photo, text,
-                                             parse_mode=ParseMode.HTML, reply_markup=markup)
-                photo_sent = True
-            except BadRequest:
-                pass
-        if not photo_sent:
-            msg = context.bot.send_message(context.user_data['id'], text,
-                                           parse_mode=ParseMode.HTML, reply_markup=markup)
-        context.user_data['messages_to_delete'].append(msg.message_id)
+    action_text = context.user_data.get('action_text')
+    active, inactive = (action_text['active'], action_text['inactive']) if isinstance(action_text, dict) else (None, None)
     buttons = []
+    for entity_id, entity_name in array:
+        text = (f'{entity_name} ({active if entity_id in context.user_data["selected_ids"] else inactive})' 
+                if active and inactive else entity_name)
+        buttons.append([InlineKeyboardButton(text, callback_data=entity_id)])
     if pages_count > 1:
         pag_block = [InlineKeyboardButton(f'{current_page}/{pages_count}', callback_data='refresh')]
         if current_page > 1:
@@ -197,13 +166,97 @@ def build_pagination(context: CallbackContext, array: list,
     context.user_data['messages_to_delete'].append(
         context.bot.send_message(
             context.user_data['id'],
-            'Пагинация. Для перехода на конкретную страницу можно отправить её номер',
-            reply_markup=InlineKeyboardMarkup(
-                buttons)).message_id)
+            f'{context.user_data.get("found_prefix", "")}'
+            f'{found_phrase} <b>{array_length}</b> {verbose_name}'
+            f'{context.user_data.get("found_suffix", "")}\n\n'
+            '<i>Для навигации также можно отправить номер страницы</i>',
+            reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML).message_id)
     return pages_count
+
+
+# def build_pagination(context: CallbackContext, array: list,
+#                      pag_step: int, current_page: int, verbose_names: list,
+#                      sub_category_verbose_name: str, is_sub_already=False,
+#                      found_phrases=None):
+#     array_length = len(array)
+#     verbose_name = make_agree_with_number(array_length, verbose_names)
+#     pages_count = (
+#         array_length // pag_step if array_length / pag_step == array_length // pag_step
+#         else array_length // pag_step + 1)
+#     if current_page > pages_count:
+#         current_page = pages_count
+#     start = (current_page - 1) * pag_step
+#     end = current_page * pag_step if current_page * pag_step <= array_length else array_length
+#     found_phrase = make_agree_with_number(array_length, ['Найден', 'Найдено', 'Найдено'] if not found_phrases
+#                                           else found_phrases)
+#     msg = context.bot.send_message(context.user_data['id'],
+#                                    f'{context.user_data.get("found_prefix", "")}'
+#                                    f'{found_phrase} <b>{array_length}</b> {verbose_name}'
+#                                    f'{context.user_data.get("found_suffix", "")}',
+#                                    parse_mode=ParseMode.HTML)
+#     context.user_data['messages_to_delete'] = context.user_data.get(
+#         'messages_to_delete', []) + [msg.message_id]
+#     for d in array[start:end]:
+#         d_id = d.pop('id')
+#         buttons = []
+#         action_text = context.user_data.get('action_text')
+#         if isinstance(action_text, dict) and action_text:
+#             action_text = action_text['active' if d_id in context.user_data['selected_ids'] else 'inactive']
+#         elif not action_text:
+#             action_text = 'Записаться'
+#         if not is_sub_already:
+#             buttons.append([InlineKeyboardButton(sub_category_verbose_name, callback_data=f'{d_id}')])
+#         buttons.append([InlineKeyboardButton(action_text, callback_data=f'{d_id} action')])
+#         markup = InlineKeyboardMarkup(buttons)
+#         try:
+#             photo = d.pop('photo')
+#         except KeyError:
+#             photo = None
+#         text = '\n'.join([f'<b>{key}</b>: {val if val else "Не указано"}' for key, val in d.items()])
+#         photo_sent = False
+#         if photo:
+#             try:
+#                 msg = context.bot.send_photo(context.user_data['id'], photo, text,
+#                                              parse_mode=ParseMode.HTML, reply_markup=markup)
+#                 photo_sent = True
+#             except BadRequest:
+#                 pass
+#         if not photo_sent:
+#             msg = context.bot.send_message(context.user_data['id'], text,
+#                                            parse_mode=ParseMode.HTML, reply_markup=markup)
+#         context.user_data['messages_to_delete'].append(msg.message_id)
+#     buttons = []
+#     if pages_count > 1:
+#         pag_block = [InlineKeyboardButton(f'{current_page}/{pages_count}', callback_data='refresh')]
+#         if current_page > 1:
+#             pag_block.insert(0, InlineKeyboardButton('«', callback_data='prev_page'))
+#         if current_page < pages_count:
+#             pag_block.append(InlineKeyboardButton('»', callback_data='next_page'))
+#         buttons.append(pag_block)
+#     if context.user_data.get('extra_buttons') and isinstance(context.user_data['extra_buttons'], list):
+#         for text, callback_data in context.user_data['extra_buttons']:
+#             buttons.append([InlineKeyboardButton(text, callback_data=callback_data)])
+#     if context.user_data.get('site_btn'):
+#         buttons.append(
+#             [InlineKeyboardButton('Перейти на сайт',
+#                                   url=get_config().get('URL клиники', {}).get('val', 'https://belberry.net'))])
+#     buttons.append([InlineKeyboardButton('Вернуться назад', callback_data='back')])
+#     context.user_data['messages_to_delete'].append(
+#         context.bot.send_message(
+#             context.user_data['id'],
+#             'Пагинация. Для перехода на конкретную страницу можно отправить её номер',
+#             reply_markup=InlineKeyboardMarkup(
+#                 buttons)).message_id)
+#     return pages_count
 
 
 def clear_temp_vars(context: CallbackContext):
     for key in 'selected_ids', 'action_text', 'found_prefix', 'found_suffix', 'extra_buttons':
+        if context.user_data.get(key):
+            context.user_data.pop(key)
+
+
+def clear_ids(context: CallbackContext):
+    for key in 'specialist_id', 'service_id', 'promotion_id':
         if context.user_data.get(key):
             context.user_data.pop(key)

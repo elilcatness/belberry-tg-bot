@@ -50,7 +50,6 @@ def show_contacts(_, context: CallbackContext):
 
 @delete_last_message
 def ask_review(_, context: CallbackContext):
-    print(f"{get_config().get('URL для отзыва', dict()).get('val', 'https://belberry.net')=}")
     markup = InlineKeyboardMarkup(
         [[InlineKeyboardButton('Вернуться назад', callback_data='back')],
          [InlineKeyboardButton(

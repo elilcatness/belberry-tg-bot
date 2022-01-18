@@ -6,13 +6,14 @@ from data.db import db_session
 from data.db.models.promotion import Promotion
 from data.db.models.service import Service
 from data.db.models.specialist import Specialist
-from data.utils import delete_last_message, upload_img, clear_temp_vars, delete_img
+from data.utils import delete_last_message, upload_img, clear_temp_vars, delete_img, clear_ids
 from data.view import SpecialistViewPublic, ServiceViewPublic, PromotionViewPublic
 
 
 @delete_last_message
 def edit_menu(_, context: CallbackContext):
     clear_temp_vars(context)
+    clear_ids(context)
     if context.user_data.get('specialist_id'):
         context.user_data.pop('specialist_id')
     if context.user_data.get('service_id'):
@@ -41,6 +42,7 @@ class SpecialistEdit:
     @staticmethod
     @delete_last_message
     def edit_menu(_, context: CallbackContext):
+        clear_temp_vars(context)
         if context.match and context.match.string and context.match.string.split()[0].isdigit():
             context.user_data['specialist_id'] = int(context.match.string.split()[0])
         with db_session.create_session() as session:
@@ -51,13 +53,16 @@ class SpecialistEdit:
             buttons.append([InlineKeyboardButton('Вернуться назад', callback_data='back')])
             return (context.bot.send_message(
                 context.user_data['id'], f'Редактирование\n\n'
-                                         f'<b>Специалист:</b>{spec.speciality} {spec.full_name}',
+                                         f'<b>Специалист:</b> {spec.speciality} {spec.full_name}',
                 reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML),
                     'edit.specialists.edit_menu')
 
     @staticmethod
     @delete_last_message
     def ask_new_value(_, context: CallbackContext):
+        for key in ('found_prefix', 'found_suffix'):
+            if context.user_data.get(key):
+                context.user_data.pop(key)
         context.user_data['key_to_change'] = context.match.string
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
@@ -79,7 +84,6 @@ class SpecialistEdit:
                 reply_markup=markup, parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True), 'edit.specialists.ask_new_value'
 
-
     @staticmethod
     @delete_last_message
     def set_new_value(update: Update, context: CallbackContext):
@@ -87,13 +91,7 @@ class SpecialistEdit:
         with db_session.create_session() as session:
             spec = session.query(Specialist).get(context.user_data['specialist_id'])
             if key_to_change == 'full_name':
-                full_name = [word.strip().capitalize() for word in update.message.text.strip().split()]
-                if session.query(Specialist).filter(Specialist.full_name == full_name).first():
-                    context.bot.send_message(
-                        context.user_data['id'],
-                        f'Специалист по имени <b>{full_name}</b> уже существует!',
-                        parse_mode=ParseMode.HTML)
-                    return SpecialistEdit.ask_new_value(update, context)
+                spec.full_name = [word.strip().capitalize() for word in update.message.text.strip().split()]
             elif key_to_change == 'speciality':
                 spec.speciality = update.message.text.strip().lower()
             elif key_to_change == 'photo':
@@ -181,6 +179,7 @@ class ServiceEdit:
     @staticmethod
     @delete_last_message
     def edit_menu(_, context: CallbackContext):
+        clear_temp_vars(context)
         if context.match and context.match.string and context.match.string.split()[0].isdigit():
             context.user_data['service_id'] = int(context.match.string.split()[0])
         with db_session.create_session() as session:
@@ -198,6 +197,9 @@ class ServiceEdit:
     @staticmethod
     @delete_last_message
     def ask_new_value(_, context: CallbackContext):
+        for key in ('found_prefix', 'found_suffix'):
+            if context.user_data.get(key):
+                context.user_data.pop(key)
         context.user_data['key_to_change'] = context.match.string
         markup = InlineKeyboardMarkup([[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
         with db_session.create_session() as session:
@@ -316,6 +318,7 @@ class PromotionEdit:
     @staticmethod
     @delete_last_message
     def edit_menu(_, context: CallbackContext):
+        clear_temp_vars(context)
         if context.match and context.match.string and context.match.string.split()[0].isdigit():
             context.user_data['promotion_id'] = int(context.match.string.split()[0])
         with db_session.create_session() as session:

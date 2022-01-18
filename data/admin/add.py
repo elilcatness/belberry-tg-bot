@@ -38,15 +38,6 @@ class SpecialistAddition:
         if update.message and update.message.text:
             context.user_data['specialist_addition']['full_name'] = ' '.join([
                 word.capitalize() for word in update.message.text.strip().split()])
-        with db_session.create_session() as session:
-            if session.query(Specialist).filter(
-                    Specialist.full_name == context.user_data['specialist_addition']['full_name']).first():
-                context.bot.send_message(
-                    context.user_data['id'],
-                    f'Специалист по имени <b>{context.user_data["specialist_addition"]["full_name"]}</b> '
-                    'уже есть в базе!',
-                    parse_mode=ParseMode.HTML)
-                return SpecialistAddition.ask_full_name(update, context)
         context.user_data['specialist_addition']['speciality'] = None
         markup = InlineKeyboardMarkup(
             [[InlineKeyboardButton('Вернуться назад', callback_data='back')]])
@@ -217,10 +208,6 @@ class ServiceAddition:
     @delete_last_message
     def finish(update: Update, context: CallbackContext):
         if update.message:
-            job_name = f'process {context.user_data["id"]}'
-            context.user_data['process.msg_text'] = 'Подождите. Фотография обрабатывается'
-            context.job_queue.run_repeating(process_view, 1, 0,
-                                            context=context, name=job_name)
             stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
                       else update.message.document.get_file().download_as_bytearray())
             try:
@@ -235,8 +222,6 @@ class ServiceAddition:
             except Exception as e:
                 context.bot.send_message(context.user_data['id'], f'Выпало следующее исключение: {str(e)}')
                 return ServiceAddition.ask_photo(update, context)
-            finally:
-                terminate_jobs(context, job_name)
         with db_session.create_session() as session:
             name = context.user_data['service_addition']['name']
             service = Service(**context.user_data.pop('service_addition'))
@@ -335,10 +320,6 @@ class PromotionAddition:
     @delete_last_message
     def finish(update: Update, context: CallbackContext):
         if update.message:
-            job_name = f'process {context.user_data["id"]}'
-            context.user_data['process.msg_text'] = 'Подождите. Фотография обрабатывается'
-            context.job_queue.run_repeating(process_view, 1, 0,
-                                            context=context, name=job_name)
             stream = (update.message.photo[-1].get_file().download_as_bytearray() if update.message.photo
                       else update.message.document.get_file().download_as_bytearray())
             try:
@@ -353,8 +334,6 @@ class PromotionAddition:
             except Exception as e:
                 context.bot.send_message(context.user_data['id'], f'Выпало следующее исключение: {str(e)}')
                 return PromotionAddition.ask_photo(update, context)
-            finally:
-                terminate_jobs(context, job_name)
         with db_session.create_session() as session:
             name = context.user_data['promotion_addition']['name']
             promo = Promotion(**context.user_data.pop('promotion_addition'))
