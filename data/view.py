@@ -35,7 +35,7 @@ class SpecialistViewPublic:
         if not context.user_data.get('spec_pagination'):
             context.user_data['spec_pagination'] = 1
         context.user_data['spec_pages_count'] = build_pagination(
-            context, specialists, cfg.get("Шаг пагинации", 7), context.user_data['spec_pagination'],
+            context, specialists, cfg.get('Шаг пагинации', dict()).get('val', 7), context.user_data['spec_pagination'],
             ('специалист', 'специалиста', 'специалистов'))
         return (f'{context.user_data["last_block"]}.specialists.show_all'
                 if 'specialists' not in context.user_data['last_block']
@@ -141,7 +141,7 @@ class ServiceViewPublic:
         if not context.user_data.get('service_pagination'):
             context.user_data['service_pagination'] = 1
         context.user_data['service_pages_count'] = build_pagination(
-            context, services, cfg.get('Шаг пагинации', 7), context.user_data['service_pagination'],
+            context, services, cfg.get('Шаг пагинации', dict()).get('val', 7), context.user_data['service_pagination'],
             ('услуга', 'услуги', 'услуг'), found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.services.show_all'
                 if 'services' not in context.user_data['last_block']
@@ -243,7 +243,7 @@ class PromotionViewPublic:
         if not context.user_data.get('promo_pagination'):
             context.user_data['promo_pagination'] = 1
         context.user_data['promo_pages_count'] = build_pagination(
-            context, promotions, cfg.get('Шаг пагинации', 7), context.user_data['promo_pagination'],
+            context, promotions, cfg.get('Шаг пагинации', dict()).get('val', 7), context.user_data['promo_pagination'],
             ('акция', 'акции', 'акций'), found_phrases=['Найдена', 'Найдено', 'Найдено'])
         return (f'{context.user_data["last_block"]}.promotions.show_all'
                 if 'promotions' not in context.user_data['last_block']
