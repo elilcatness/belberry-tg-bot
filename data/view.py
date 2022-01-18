@@ -271,7 +271,7 @@ class PromotionViewPublic:
                 buttons.insert(0, [InlineKeyboardButton('Услуги', callback_data=f'services {promotion.id}')])
             markup = InlineKeyboardMarkup(buttons)
             callback = (f'{context.user_data["last_block"]}.promotions.show_card'
-                        if 'services' not in context.user_data['last_block']
+                        if 'promotions' not in context.user_data['last_block']
                         else f'{context.user_data["last_block"]}.show_card')
             if promotion.photo:
                 try:
