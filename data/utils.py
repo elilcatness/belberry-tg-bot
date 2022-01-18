@@ -149,12 +149,15 @@ def build_pagination(context: CallbackContext, array: list,
                 if active and inactive else entity_name)
         buttons.append([InlineKeyboardButton(text, callback_data=entity_id)])
     if pages_count > 1:
+        footer = '\n\n<i>Для навигации также можно отправить номер страницы</i>'
         pag_block = [InlineKeyboardButton(f'{current_page}/{pages_count}', callback_data='refresh')]
         if current_page > 1:
             pag_block.insert(0, InlineKeyboardButton('«', callback_data='prev_page'))
         if current_page < pages_count:
             pag_block.append(InlineKeyboardButton('»', callback_data='next_page'))
         buttons.append(pag_block)
+    else:
+        footer = ''
     if context.user_data.get('extra_buttons') and isinstance(context.user_data['extra_buttons'], list):
         for text, callback_data in context.user_data['extra_buttons']:
             buttons.append([InlineKeyboardButton(text, callback_data=callback_data)])
@@ -168,8 +171,7 @@ def build_pagination(context: CallbackContext, array: list,
             context.user_data['id'],
             f'{context.user_data.get("found_prefix", "")}'
             f'{found_phrase} <b>{array_length}</b> {verbose_name}'
-            f'{context.user_data.get("found_suffix", "")}\n\n'
-            '<i>Для навигации также можно отправить номер страницы</i>',
+            f'{context.user_data.get("found_suffix", "")}{footer}',
             reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.HTML).message_id)
     return pages_count
 
