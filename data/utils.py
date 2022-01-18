@@ -166,6 +166,8 @@ def build_pagination(context: CallbackContext, array: list,
             [InlineKeyboardButton('Перейти на сайт',
                                   url=get_config().get('URL клиники', {}).get('val', 'https://belberry.net'))])
     buttons.append([InlineKeyboardButton('Вернуться назад', callback_data='back')])
+    if not context.user_data.get('messages_to_delete'):
+        context.user_data['messages_to_delete'] = []
     context.user_data['messages_to_delete'].append(
         context.bot.send_message(
             context.user_data['id'],
