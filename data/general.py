@@ -17,9 +17,8 @@ def start(update, context):
         context.user_data.pop('promotion_id')
     cfg = get_config()
     buttons = [
-         [InlineKeyboardButton('Да', callback_data='help'), InlineKeyboardButton('Нет', callback_data='info')],
-         [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', {}).get('val', 'https://belberry.net/'))],
-         [InlineKeyboardButton('Позже', callback_data='later')]]
+         [InlineKeyboardButton('Да', callback_data='help'), InlineKeyboardButton('Нет', callback_data='later')],
+         [InlineKeyboardButton('Перейти на сайт', url=cfg.get('URL клиники', {}).get('val', 'https://belberry.net/'))]]
     phone = cfg.get('Номер телефона', {}).get('val', 'Не указан')
     if isinstance(phone, list) and len(phone) > 1:
         phone = phone[0]
