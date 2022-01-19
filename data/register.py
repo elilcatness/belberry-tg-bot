@@ -78,6 +78,8 @@ class Register:
             else:
                 _type, entity_id = None, None
             context.user_data['register'] = {'_type': _type, 'entity_id': entity_id}
+        if not context.user_data.get('register'):
+            context.user_data['register'] = dict()
         markup = ReplyKeyboardMarkup([[KeyboardButton('Вернуться назад')]], resize_keyboard=True,
                                      one_time_keyboard=True)
         return context.bot.send_message(context.user_data['id'], 'Введите своё имя',
